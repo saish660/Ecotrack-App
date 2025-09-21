@@ -137,7 +137,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Firebase configuration for FCM (Firebase Cloud Messaging)
 # Path to Firebase service account JSON file
-FIREBASE_SERVICE_ACCOUNT_KEY = str(BASE_DIR / 'ecotrack-fcm-firebase-adminsdk-fbsvc-94a405723b.json')
+FIREBASE_SERVICE_ACCOUNT_KEY = str(BASE_DIR / 'ecotrack-fcm-firebase-adminsdk-fbsvc-0d4fbb314b.json')
 
 # Firebase web app configuration (for frontend)
 # These will be provided after you complete the Firebase setup
