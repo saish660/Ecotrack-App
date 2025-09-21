@@ -1,0 +1,1099 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>EcoTrack - Survey</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'styles.css' %}"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'icons/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static '/icons/site.webmanifest' %}">
+    <meta name="msapplication-TileColor" content="#9987f8">
+    <meta name="theme-color" content="#dcfce7">
+</head>
+<body>
+<!-- Header -->
+<header class="app-header">
+    <img src="{% static 'icons/ecotrack_logo.png' %}" class="website-logo">
+    <h1>EcoTrack</h1>
+</header>
+<div class="questionnaire-progress" id="sticky-progress">
+    <div class="progress-bar">
+        <div class="progress-fill" id="survey-progress"></div>
+    </div>
+    <span class="progress-text" id="survey-progress-text"
+    >0/5 questions answered</span
+    >
+</div>
+<main>
+    <!-- Survey Tab -->
+    <section id="survey" class="tab-content active">
+        <div class="card">
+            <h2 class="card-title">EcoTrack User Survey</h2>
+
+            <form id="survey-form" class="daily-questionnaire-form">
+                <!-- HOUSEHOLD & HOME ENERGY -->
+                <div class="questionnaire-item">
+                    <p class="question-text">
+                        How many people are in your household?
+                    </p>
+                    <div class="form-element">
+                        <input type="number" name="how_many_people_are_in_your_household" min="1" required/>
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">What type of home do you live in?</p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="what_type_of_home_do_you_live_in"
+                                value="Apartment"
+                                required
+                        />
+                            <div class="option-content">
+                                <span>Apartment</span>
+                            </div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="what_type_of_home_do_you_live_in"
+                                value="Detached House"
+                        />
+                            <div class="option-content">
+                                <span>Detached House</span>
+                            </div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="what_type_of_home_do_you_live_in"
+                                value="Semi-detached House"
+                        />
+                            <div class="option-content">
+                                <span>Semi-detached House</span>
+                            </div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="what_type_of_home_do_you_live_in" value="Other"/>
+                            <div class="option-content"><span>Other</span></div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">What is the size of your home?</p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="what_is_the_size_of_your_home"
+                                value="Small"
+                                required
+                        />
+                            <div class="option-content"><span>Small</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="what_is_the_size_of_your_home" value="Medium"/>
+                            <div class="option-content"><span>Medium</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="what_is_the_size_of_your_home" value="Large"/>
+                            <div class="option-content"><span>Large</span></div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">
+                        How much electricity does your household use per month?
+                    </p>
+                    <div class="form-element">
+                        <input
+                                type="number"
+                                name="how_much_electricity_does_your_household_use_per_month"
+                                min="0"
+                                placeholder="kWh"
+                                required
+                        />
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">
+                        Is your electricity from renewable sources?
+                    </p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="is_your_electricity_from_renewable_sources"
+                                value="Yes"
+                                required
+                        />
+                            <div class="option-content"><span>Yes</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="is_your_electricity_from_renewable_sources"
+                                value="Partially"
+                        />
+                            <div class="option-content">
+                                <span>Partially</span>
+                            </div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="is_your_electricity_from_renewable_sources"
+                                value="No"
+                        />
+                            <div class="option-content"><span>No</span></div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">What is your primary heating source?</p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="what_is_your_primary_heating_source"
+                                value="Natural Gas"
+                                required
+                        />
+                            <div class="option-content">
+                                <span>Natural Gas</span>
+                            </div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="what_is_your_primary_heating_source"
+                                value="Electricity"
+                        />
+                            <div class="option-content">
+                                <span>Electricity</span>
+                            </div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="what_is_your_primary_heating_source" value="Oil"/>
+                            <div class="option-content"><span>Oil</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="what_is_your_primary_heating_source" value="Propane"/>
+                            <div class="option-content"><span>Propane</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="what_is_your_primary_heating_source" value="Wood"/>
+                            <div class="option-content"><span>Wood</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="what_is_your_primary_heating_source" value="Other"/>
+                            <div class="option-content"><span>Other</span></div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">
+                        What percentage of your monthly electricity consumption do you think is used for heating?
+                    </p>
+                    <div class="form-element">
+                        <input
+                                type="number"
+                                name="what_percentage_of_your_monthly_electricity_consumption_do_you_think_is_used_for_heating"
+                                min="0"
+                                placeholder="kWh/gallons or $"
+                                required
+                        />
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">
+                        Do you use energy-saving appliances or lightbulbs?
+                    </p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="do_you_use_energy_saving_appliances_or_lightbulbs"
+                                value="Yes"
+                                required
+                        />
+                            <div class="option-content"><span>Yes</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="do_you_use_energy_saving_appliances_or_lightbulbs" value="No"/>
+                            <div class="option-content"><span>No</span></div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <!-- TRANSPORTATION -->
+                <div class="questionnaire-item">
+                    <p class="question-text">
+                        How many vehicles are in your household?
+                    </p>
+                    <div class="form-element">
+                        <input
+                                type="number"
+                                name="how_many_vehicles_are_in_your_household"
+                                min="0"
+                                max="20"
+                                required
+                        />
+                    </div>
+                </div>
+
+                <!-- Vehicle sub-questions will be inserted here by JS -->
+                <div class="questionnaire-item">
+                    <p class="question-text">
+                        How often do you use public transport?
+                    </p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="how_often_do_you_use_public_transport"
+                                value="Daily"
+                                required
+                        />
+                            <div class="option-content"><span>Daily</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="how_often_do_you_use_public_transport"
+                                value="Weekly"
+                        />
+                            <div class="option-content"><span>Weekly</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="how_often_do_you_use_public_transport"
+                                value="Rarely"
+                        />
+                            <div class="option-content"><span>Rarely</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="how_often_do_you_use_public_transport"
+                                value="Never"
+                        />
+                            <div class="option-content"><span>Never</span></div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <div class="questionnaire-item" id="public-transport-details" style="display: none">
+                    <p class="question-text">
+                        How much distance do you commute in public transport per week on average? (in km)
+                    </p>
+                    <div class="form-element">
+                        <input
+                                type="number"
+                                name="how_much_distance_do_you_commute_in_public_transport_per_week_on_average"
+                                min="0"
+                                max="10000"
+                                required
+                        />
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">
+                        How many flights have you taken in the past year?
+                    </p>
+                    <div class="form-element">
+                        <input
+                                type="number"
+                                name="how_many_flights_have_you_taken_in_the_past_year"
+                                min="0"
+                                max="20"
+                                required
+                        />
+                    </div>
+                </div>
+                <div
+                        class="questionnaire-item"
+                        id="flight-details"
+                        style="display: none"
+                >
+                    <p class="question-text">For each flight, specify type:</p>
+                    <div class="form-element" id="flight-type-list"></div>
+                </div>
+                <!-- DIET & FOOD -->
+                <div class="questionnaire-item">
+                    <p class="question-text">What best describes your diet?</p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="what_best_describes_your_diet"
+                                value="Vegan"
+                                required
+                        />
+                            <div class="option-content"><span>Vegan</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="what_best_describes_your_diet" value="Vegetarian"/>
+                            <div class="option-content">
+                                <span>Vegetarian</span>
+                            </div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="what_best_describes_your_diet" value="Pescatarian"/>
+                            <div class="option-content">
+                                <span>Pescatarian</span>
+                            </div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="what_best_describes_your_diet" value="Omnivore"/>
+                            <div class="option-content"><span>Omnivore</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="what_best_describes_your_diet" value="High Meat"/>
+                            <div class="option-content">
+                                <span>High Meat</span>
+                            </div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">
+                        How much of your food is organic/local?
+                    </p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="how_much_of_your_food_is_organic_local"
+                                value="None"
+                                required
+                        />
+                            <div class="option-content"><span>None</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="how_much_of_your_food_is_organic_local" value="Some"/>
+                            <div class="option-content"><span>Some</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="how_much_of_your_food_is_organic_local" value="Most"/>
+                            <div class="option-content"><span>Most</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="how_much_of_your_food_is_organic_local" value="All"/>
+                            <div class="option-content"><span>All</span></div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">How much food do you waste?</p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="how_much_food_do_you_waste"
+                                value="Above average"
+                                required
+                        />
+                            <div class="option-content">
+                                <span>Above average</span>
+                            </div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="how_much_food_do_you_waste" value="Average"/>
+                            <div class="option-content"><span>Average</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="how_much_food_do_you_waste"
+                                value="Below average"
+                        />
+                            <div class="option-content">
+                                <span>Below average</span>
+                            </div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="how_much_food_do_you_waste" value="Very little"/>
+                            <div class="option-content">
+                                <span>Very little</span>
+                            </div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">
+                        How much of your food is packaged/processed?
+                    </p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="how_much_of_your_food_is_packaged_processed"
+                                value="Above average"
+                                required
+                        />
+                            <div class="option-content">
+                                <span>Above average</span>
+                            </div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="how_much_of_your_food_is_packaged_processed" value="Average"/>
+                            <div class="option-content"><span>Average</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="how_much_of_your_food_is_packaged_processed"
+                                value="Below average"
+                        />
+                            <div class="option-content">
+                                <span>Below average</span>
+                            </div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="how_much_of_your_food_is_packaged_processed"
+                                value="Very little"
+                        />
+                            <div class="option-content">
+                                <span>Very little</span>
+                            </div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">Do you compost food waste?</p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input type="radio" name="do_you_compost_food_waste" value="None" required/>
+                            <div class="option-content"><span>None</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="do_you_compost_food_waste" value="Some"/>
+                            <div class="option-content"><span>Some</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="do_you_compost_food_waste" value="All"/>
+                            <div class="option-content"><span>All</span></div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <!-- WASTE & RECYCLING -->
+                <div class="questionnaire-item">
+                    <p class="question-text">
+                        Do you recycle the following? (Check all that apply)
+                    </p>
+                    <div class="form-element">
+                        <label class="option-card"
+                        ><input type="checkbox" name="do_you_recycle_the_following_check_all_that_apply_paper"/>
+                            Paper</label
+                        >
+                        <label class="option-card"
+                        ><input type="checkbox" name="do_you_recycle_the_following_check_all_that_apply_glass"/>
+                            Glass</label
+                        >
+                        <label class="option-card"
+                        ><input type="checkbox" name="do_you_recycle_the_following_check_all_that_apply_metal"/>
+                            Metal</label
+                        >
+                        <label class="option-card"
+                        ><input type="checkbox" name="do_you_recycle_the_following_check_all_that_apply_plastic"/>
+                            Plastic</label
+                        >
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">How much waste do you produce?</p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="how_much_waste_do_you_produce"
+                                value="Above average"
+                                required
+                        />
+                            <div class="option-content">
+                                <span>Above average</span>
+                            </div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="how_much_waste_do_you_produce" value="Average"/>
+                            <div class="option-content"><span>Average</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="how_much_waste_do_you_produce"
+                                value="Below average"
+                        />
+                            <div class="option-content">
+                                <span>Below average</span>
+                            </div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="how_much_waste_do_you_produce"
+                                value="Very little"
+                        />
+                            <div class="option-content">
+                                <span>Very little</span>
+                            </div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <!-- SHOPPING & MISC -->
+                <div class="questionnaire-item">
+                    <p class="question-text">
+                        How often do you buy new clothes, electronics, or appliances?
+                    </p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="how_often_do_you_buy_new_clothes_electronics_or_appliances"
+                                value="Often"
+                                required
+                        />
+                            <div class="option-content"><span>Often</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="how_often_do_you_buy_new_clothes_electronics_or_appliances"
+                                value="Sometimes"/>
+                            <div class="option-content">
+                                <span>Sometimes</span>
+                            </div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="how_often_do_you_buy_new_clothes_electronics_or_appliances"
+                                value="Rarely"/>
+                            <div class="option-content"><span>Rarely</span></div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">
+                        Do you buy second-hand or repair items?
+                    </p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="do_you_buy_second_hand_or_repair_items"
+                                value="Yes"
+                                required
+                        />
+                            <div class="option-content"><span>Yes</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="do_you_buy_second_hand_or_repair_items" value="No"/>
+                            <div class="option-content"><span>No</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="do_you_buy_second_hand_or_repair_items"
+                                value="Sometimes"
+                                required
+                        />
+                            <div class="option-content"><span>Sometimes</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="do_you_buy_second_hand_or_repair_items"
+                                value="Rarely"
+                                required
+                        />
+                            <div class="option-content"><span>Rarely</span></div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">Do you try to offset your carbon emissions?</p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input type="radio" name="do_you_offset_your_carbon_emissions" value="Yes" required/>
+                            <div class="option-content"><span>Yes</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="do_you_offset_your_carbon_emissions" value="No"/>
+                            <div class="option-content"><span>No</span></div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <!-- WATER USAGE -->
+                <div class="questionnaire-item">
+                    <p class="question-text">
+                        How much water does your household use per month? (in litres)
+                    </p>
+                    <div class="form-element">
+                        <input
+                                type="number"
+                                name="how_much_water_does_your_household_use_per_month_in_litres"
+                                min="0"
+                                placeholder="liters"
+                                required
+                        />
+                    </div>
+                </div>
+                <div class="questionnaire-item">
+                    <p class="question-text">Do you use water-saving devices?</p>
+                    <div class="options-grid">
+                        <label class="option-card"
+                        ><input
+                                type="radio"
+                                name="do_you_use_water_saving_devices"
+                                value="Yes"
+                                required
+                        />
+                            <div class="option-content"><span>Yes</span></div>
+                        </label
+                        >
+                        <label class="option-card"
+                        ><input type="radio" name="do_you_use_water_saving_devices" value="No"/>
+                            <div class="option-content"><span>No</span></div>
+                        </label
+                        >
+                    </div>
+                </div>
+                <!-- Existing questions (if any) can follow here -->
+                <button
+                        type="submit"
+                        class="btn btn-primary"
+                        style="margin-top: 1rem"
+                >
+                    Submit Survey
+                </button>
+            </form>
+
+            <div id="survey-status-message" class="hidden">
+                <div class="completion-celebration">
+                    <div class="celebration-icon">Redirecting...</div>
+                    <p>Thank you for completing the survey!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<script>
+    // Survey progress bar and selection logic
+    const form = document.getElementById("survey-form");
+    const progressFill = document.getElementById("survey-progress");
+    const progressText = document.getElementById("survey-progress-text");
+    const statusMsg = document.getElementById("survey-status-message");
+
+    // --- Dynamic vehicle questions ---
+    function renderVehicleQuestions() {
+        // Remove old vehicle questions
+        document
+            .querySelectorAll(".vehicle-questionnaire")
+            .forEach((el) => el.remove());
+        const count = parseInt(form.how_many_vehicles_are_in_your_household?.value || 0);
+        const after = form
+            .querySelector('input[name="how_many_vehicles_are_in_your_household"]')
+            .closest(".questionnaire-item");
+
+        const div2 = document.createElement("div");
+        div2.className = "questionnaire-item vehicle-questionnaire";
+
+        for (let i = 1; i <= count; i++) {
+            const div = document.createElement("div");
+            div.className = "questionnaire-item vehicle-questionnaire";
+            div.innerHTML = `
+            <p class="question-text">Vehicle ${i} details:</p>
+            <div class="form-element">
+              <label>Type:
+                <select name="vehicle_${i}_type" required>
+                  <option value="Petrol">Petrol</option>
+                  <option value="Diesel">Diesel</option>
+                  <option value="Hybrid">Hybrid</option>
+                  <option value="Electric">Electric</option>
+                </select>
+              </label>
+            </div>
+            <div class="form-element">
+              <label>Vehicle mileage (km):
+                <input type="number" name="vehicle_${i}_mileage" min="0" required />
+              </label>
+            </div>
+          `;
+            after.parentNode.insertBefore(div, after.nextSibling);
+        }
+
+        div2.innerHTML = `
+                    <p class="question-text">
+                        How much distance do you commute in your car per week on average? (in km)
+                    </p>
+                    <div class="form-element">
+                        <input
+                                type="number"
+                                name="how_much_distance_do_you_commute_in_public_transport_per_week_on_average"
+                                min="0"
+                                max="10000"
+                                required
+                        />
+                </div>
+          `;
+        after.parentNode.insertBefore(div2, after.nextSibling);
+    }
+
+    form.how_many_vehicles_are_in_your_household?.addEventListener("input", () => {
+        if (form.how_many_vehicles_are_in_your_household.value !== 0) {
+            renderVehicleQuestions();
+        } else {
+            renderVehicleQuestions();
+        }
+    });
+
+    // --- Dynamic public transport mileage ---
+    function handlePublicTransportDetails() {
+        const freq = form.querySelector(
+            'input[name="how_often_do_you_use_public_transport"]:checked'
+        );
+        const details = document.getElementById("public-transport-details");
+        if (freq && freq.value !== "Never" && freq.value !== "Rarely") {
+            details.style.display = "";
+        } else {
+            details.style.display = "none";
+            details.required = false;
+        }
+    }
+
+    // --- Dynamic flight questions ---
+    function renderFlightQuestions() {
+        const count = parseInt(form.how_many_flights_have_you_taken_in_the_past_year?.value || 0);
+        const details = document.getElementById("flight-details");
+        const list = document.getElementById("flight-type-list");
+        list.innerHTML = "";
+        if (count > 0) {
+            details.style.display = "";
+            for (let i = 1; i <= count; i++) {
+                const div = document.createElement("div");
+                div.className = "form-element";
+                div.innerHTML = `
+              <label>Flight ${i} type:
+                <select name="flight_${i}_type" required>
+                  <option value="Short-haul">Short-haul (&lt;3h)</option>
+                  <option value="Medium-haul">Medium-haul (3-6h)</option>
+                  <option value="Long-haul">Long-haul (&gt;6h)</option>
+                </select>
+              </label>
+            `;
+                list.appendChild(div);
+            }
+        } else {
+            details.style.display = "none";
+        }
+    }
+
+    form.how_many_flights_have_you_taken_in_the_past_year?.addEventListener("input", () => {
+        renderFlightQuestions();
+        updateSurveyProgress();
+    });
+
+    // --- Progress calculation ---
+    function getTotalQuestions() {
+        let total = 0;
+        // Count all visible .questionnaire-item and dynamic vehicle/flight questions
+        document.querySelectorAll(".questionnaire-item").forEach((item) => {
+            if (
+                item.style.display !== "none" &&
+                !item.classList.contains("hidden")
+            )
+                total++;
+        });
+        // Add vehicle sub-questions
+        const vehicleCount = parseInt(form.how_many_vehicles_are_in_your_household?.value || 0);
+        total += vehicleCount * 3; // 3 questions per vehicle
+        // Add flight sub-questions
+        const flightCount = parseInt(form.how_many_flights_have_you_taken_in_the_past_year?.value || 0);
+        total += flightCount; // 1 question per flight
+        return total;
+    }
+
+    function getAnsweredQuestions() {
+        let answered = 0;
+        // Count all visible required inputs/selects/radios/checkboxes
+        document.querySelectorAll(".questionnaire-item").forEach((item) => {
+            if (
+                item.style.display === "none" ||
+                item.classList.contains("hidden")
+            )
+                return;
+            const requiredInputs = item.querySelectorAll(
+                "input[required], select[required]"
+            );
+            let allAnswered = true;
+            requiredInputs.forEach((input) => {
+                if (input.type === "radio") {
+                    const group = item.querySelectorAll(
+                        `input[name="${input.name}"]`
+                    );
+                    if (![...group].some((r) => r.checked)) allAnswered = false;
+                } else if (input.type === "checkbox") {
+                    // pass
+                } else if (!input.value) {
+                    allAnswered = false;
+                }
+            });
+            if (allAnswered) answered++;
+        });
+        // Vehicle sub-questions
+        const vehicleCount = parseInt(form.how_many_vehicles_are_in_your_household?.value || 0);
+        for (let i = 1; i <= vehicleCount; i++) {
+            if (form[`vehicle_${i}_type`]?.value) answered++;
+            if (form[`vehicle_${i}_mileage`]?.value) answered++;
+        }
+        // Flight sub-questions
+        const flightCount = parseInt(form.how_many_flights_have_you_taken_in_the_past_year?.value || 0);
+        for (let i = 1; i <= flightCount; i++) {
+            if (form[`flight_${i}_type`]?.value) answered++;
+        }
+        return answered;
+    }
+
+    function updateSurveyProgress() {
+        handlePublicTransportDetails();
+        const totalQuestions = getTotalQuestions();
+        const answered = getAnsweredQuestions();
+        const percent = totalQuestions ? (answered / totalQuestions) * 100 : 0;
+        if (progressFill) progressFill.style.width = percent + "%";
+        if (progressText)
+            progressText.textContent = `${answered}/${totalQuestions} questions answered`;
+    }
+
+    // --- Option card selection logic (unchanged) ---
+    form.addEventListener("click", (event) => {
+        const optionCard = event.target.closest(".option-card");
+        if (optionCard) {
+            const radioInput = optionCard.querySelector('input[type="radio"]');
+            if (radioInput) {
+                radioInput.checked = true;
+                // Remove selected from all in group
+                const name = radioInput.name;
+                form.querySelectorAll(`input[name="${name}"]`).forEach((opt) => {
+                    opt.closest(".option-card").classList.remove("selected");
+                });
+                optionCard.classList.add("selected");
+                updateSurveyProgress();
+            }
+        }
+    });
+    // --- Change/input listeners ---
+    form.addEventListener("change", updateSurveyProgress);
+    form.addEventListener("input", updateSurveyProgress);
+
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        form.classList.add("disabled");
+        statusMsg.classList.remove("hidden");
+
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 1000);
+    })
+
+    renderFlightQuestions();
+    // Force how_many_people_are_in_your_household input to be empty on load
+    if (form.how_many_people_are_in_your_household) form.how_many_people_are_in_your_household.value = "";
+    updateSurveyProgress();
+
+    // Patch getAnsweredQuestions to only count household_size if > 0
+    const originalGetAnsweredQuestions = getAnsweredQuestions;
+    getAnsweredQuestions = function () {
+        let answered = 0;
+        document.querySelectorAll(".questionnaire-item").forEach((item) => {
+            if (
+                item.style.display === "none" ||
+                item.classList.contains("hidden")
+            ) return;
+
+            const requiredInputs = item.querySelectorAll(
+                "input[required], select[required]"
+            );
+            let allAnswered = true;
+            requiredInputs.forEach((input) => {
+                if (input.name === "household_size") {
+                    if (!input.value || parseInt(input.value) <= 0)
+                        allAnswered = false;
+                } else if (input.type === "radio") {
+                    const group = item.querySelectorAll(
+                        `input[name="${input.name}"]`
+                    );
+                    if (![...group].some((r) => r.checked)) allAnswered = false;
+                } else if (input.type === "checkbox") {
+                    // Not required for checkboxes in this form
+                } else if (!input.value) {
+                    allAnswered = false;
+                }
+            });
+            if (allAnswered) answered++;
+        });
+        // Vehicle sub-questions
+        const vehicleCount = parseInt(form.how_many_vehicles_are_in_your_household?.value || 0);
+        for (let i = 1; i <= vehicleCount; i++) {
+            if (form[`vehicle_${i}_type`]?.value) answered++;
+            if (form[`vehicle_${i}_mileage`]?.value) answered++;
+        }
+        // Flight sub-questions
+        const flightCount = parseInt(form.how_many_flights_have_you_taken_in_the_past_year?.value || 0);
+        for (let i = 1; i <= flightCount; i++) {
+            if (form[`flight_${i}_type`]?.value) answered++;
+        }
+        return answered;
+    };
+
+    function handleFormSubmit(formId, endpoint) {
+        const form = document.getElementById(formId);
+
+        if (!form) {
+            console.error(`Form with ID "${formId}" not found.`);
+            return;
+        }
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            // Create a FormData object from the form
+            const formData = new FormData(form);
+
+            const dataToSend = {};
+
+            // Iterate over the form entries
+            for (const [key, value] of formData.entries()) {
+                // Check if the value is a string and not just whitespace, or if it's not a string (e.g., a file)
+                if (typeof value === 'string' && value.trim() !== '') {
+                    dataToSend[key] = value.trim();
+                } else if (typeof value !== 'string') {
+                    dataToSend[key] = value;
+                }
+            }
+
+            // Check if there is any data to send
+            if (Object.keys(dataToSend).length === 0) {
+                alert("Please fill out at least one field.");
+                return;
+            }
+
+            console.log("Sending data:", dataToSend);
+
+            // Send the collected data to the backend using the Fetch API
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                body: JSON.stringify(dataToSend)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Network response was not ok (${response.status})`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Success:', data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while submitting the form. Please try again.');
+                });
+        });
+    }
+
+    function getCsrfToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, 'csrftoken'.length + 1) === ('csrftoken=')) {
+                    cookieValue = decodeURIComponent(cookie.substring('csrftoken'.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        handleFormSubmit('survey-form', 'survey');
+    });
+
+    function showStep(stepToShow) {
+        document.querySelectorAll('.form-step').forEach(step => {
+            step.style.display = 'none'; // Hide all steps
+        });
+        stepToShow.style.display = 'block'; // Show the target step
+    }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,670 @@
+{% load static %} {% load tz %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EcoTrack - Eco Habits</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="{% static 'icons/apple-touch-icon.png' %}"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="{% static 'icons/favicon-32x32.png' %}"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="{% static 'icons/favicon-16x16.png' %}"
+    />
+    <link rel="manifest" href="{% static '/icons/site.webmanifest' %}" />
+    <meta name="msapplication-TileColor" content="#9987f8" />
+    <meta name="theme-color" content="#dcfce7" />
+  </head>
+  <body>
+    {% csrf_token %}
+    <!-- Header -->
+    <header class="app-header">
+      <img src="{% static 'icons/ecotrack_logo.png' %}" class="website-logo" />
+      <h1>EcoTrack</h1>
+    </header>
+
+    <!-- Main Content Area -->
+    <main>
+      <!-- Dashboard Tab -->
+      <section id="dashboard" class="tab-content active">
+        <div class="card">
+          <div class="overview-header">
+            <div class="score-circle-container">
+              <svg
+                class="w-full h-full"
+                viewBox="0 0 100 100"
+                style="transform: rotate(-90deg)"
+              >
+                <circle
+                  stroke="#e5e7eb"
+                  stroke-width="10"
+                  cx="50"
+                  cy="50"
+                  r="45"
+                  fill="transparent"
+                ></circle>
+                <circle
+                  id="score-circle"
+                  stroke="var(--primary-color)"
+                  stroke-width="10"
+                  cx="50"
+                  cy="50"
+                  r="45"
+                  fill="transparent"
+                  stroke-dasharray="282.6"
+                  stroke-dashoffset="282.6"
+                  style="transition: stroke-dashoffset 0.8s ease-out"
+                ></circle>
+              </svg>
+              <span id="sustainability-score">0</span>
+            </div>
+            <p class="score-label">Sustainability Score</p>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <p class="label">Carbon Footprint</p>
+              <p id="carbon-footprint" class="value">0 kg</p>
+            </div>
+            <div class="stat-item">
+              <p class="label">Habits Today</p>
+              <p id="habits-completed-today" class="value">0</p>
+            </div>
+            <div class="stat-item streak-item">
+              <p class="label">🔥 Streak</p>
+              <p id="streak-count" class="value">0 days</p>
+            </div>
+          </div>
+        </div>
+        <div class="dashboard-flexbox">
+          <div
+            class="card dashboard-shortcut-card"
+            id="dashboard-checkin-shortcut"
+          >
+            <h2 class="card-title">🌱 Daily Eco-Check-in</h2>
+            <p>
+              Complete your daily eco-check-in to track your habits and earn
+              rewards!
+            </p>
+            <button
+              class="btn btn-primary"
+              style="margin-top: 1rem"
+              data-tab="checkin"
+            >
+              Check-in
+            </button>
+          </div>
+          <!-- AI Ecosystem Visualization Section -->
+          <div class="card" id="ecosystem-visualization-card">
+            <h2 class="card-title">🌳 Your Ecosystem Patch</h2>
+            <div
+              id="ecosystem-visualization-container"
+              style="
+                width: 100%;
+                height: 300px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #e6f4ea;
+                border-radius: 1rem;
+                overflow: hidden;
+                margin-bottom: 1rem;
+              "
+            >
+              <div id="ecosystem3d" style="width: 100%; height: 300px"></div>
+            </div>
+            <p
+              style="
+                font-size: 0.95rem;
+                color: var(--text-color-secondary);
+                margin-bottom: 0;
+              "
+            >
+              This patch of land evolves as your sustainability improves!
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Habits Tab -->
+      <section id="habits" class="tab-content">
+        <div class="card">
+          <h2 class="card-title">Create a New Eco Habit</h2>
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              gap: 0.5rem;
+              margin-bottom: 1rem;
+            "
+          >
+            <input
+              id="habit-input"
+              class="add-habit-input"
+              type="text"
+              placeholder="Enter a new habit..."
+              autocomplete="off"
+              style="width: 100%; box-sizing: border-box"
+            />
+            <button
+              id="habit-add-btn"
+              class="btn btn-primary"
+              style="width: 100%; min-width: 0"
+            >
+              Add
+            </button>
+          </div>
+          <ul id="habit-items-list" class="habit-list"></ul>
+        </div>
+      </section>
+
+      <!-- Suggestions Tab -->
+      <section id="suggestions" class="tab-content">
+        <h2
+          class="section-title"
+          style="padding-left: 0.5rem; margin-bottom: 1.5rem"
+        >
+          Personalized Suggestions
+        </h2>
+        <div id="suggestion-cards-container"></div>
+      </section>
+
+      <!-- Profile Tab -->
+      <section id="profile" class="tab-content">
+        <div class="card profile-card">
+          <h2 class="card-title">Profile</h2>
+          <div class="profile-avatar">U</div>
+          <p style="font-size: 1.25rem; font-weight: 600">
+            {{ request.user.username }}
+          </p>
+          <p style="color: var(--text-color-secondary); margin-bottom: 1.5rem">
+            Joined: {{ request.user.date_joined.date }}
+          </p>
+          <button
+            class="btn"
+            style="background-color: var(--danger-color); color: white"
+            onclick="logout()"
+          >
+            Logout
+          </button>
+        </div>
+
+        <!-- Carbon footprint prediction graph -->
+        <div class="card">
+          <h2 class="card-title">Monthly Carbon Footprint</h2>
+          <div class="carbon-graph-container">
+            <canvas id="carbonGraph" width="400" height="200"></canvas>
+            <div class="graph-legend">
+              <div class="legend-item">
+                <span class="legend-color" style="background: #3b82f6"></span>
+                <span>Last Month</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #22c55e"></span>
+                <span>This Month</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #f59e0b"></span>
+                <span>Next Month</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Show only a few badges here -->
+        <div class="card">
+          <h2 class="card-title">Achievements</h2>
+          <div id="profile-achievements-preview" class="achievements-grid">
+            <!-- Only a few achievements will be shown here by JS -->
+          </div>
+          <button class="btn btn-secondary" data-tab="all-achievements">
+            View All Badges
+          </button>
+        </div>
+
+        <!-- Notification Settings -->
+        <div class="card">
+          <h2 class="card-title">Push Notifications</h2>
+          <div class="notification-settings">
+            <div class="setting-item">
+              <label for="notification-toggle" class="setting-label">
+                <span>Enable Daily Reminders</span>
+                <div class="toggle-switch">
+                  <input type="checkbox" id="notification-toggle" />
+                  <span class="toggle-slider"></span>
+                </div>
+              </label>
+            </div>
+
+            <div class="setting-item" id="time-setting" style="display: none">
+              <label for="notification-time" class="setting-label">
+                <span>Reminder Time</span>
+                <input
+                  type="time"
+                  id="notification-time"
+                  class="time-input"
+                  value="09:00"
+                />
+              </label>
+            </div>
+
+            <div class="notification-actions">
+              <button
+                id="request-permission-btn"
+                class="btn btn-primary"
+                style="display: none"
+              >
+                Enable Notifications
+              </button>
+              <button
+                id="test-notification-btn"
+                class="btn btn-secondary"
+                style="display: none"
+              >
+                Send Test Notification
+              </button>
+              <button
+                id="save-notification-settings"
+                class="btn btn-primary"
+                style="display: none"
+              >
+                Save Settings
+              </button>
+            </div>
+
+            <div id="notification-status" class="notification-status">
+              <p class="status-text">Loading notification settings...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Check-in Tab (new) -->
+      <section id="checkin" class="tab-content">
+        <button
+          class="btn btn-secondary go-back-btn"
+          style="margin-bottom: 1rem"
+          data-go-back="dashboard"
+        >
+          Go Back
+        </button>
+        <div class="card">
+          <h2 class="card-title">🌱 Daily Eco-Check-in</h2>
+          <div class="questionnaire-progress sticky-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" id="questionnaire-progress"></div>
+            </div>
+            <span class="progress-text" id="progress-text">Loading...</span>
+          </div>
+          <form
+            id="daily-questionnaire-form"
+            class="daily-questionnaire-form"
+          ></form>
+          <div id="form-status-message" class="hidden">
+            <div class="completion-celebration">
+              <div class="celebration-icon">🎉</div>
+              <p>You've completed today's eco-check-in! Come back tomorrow.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Communities Tab -->
+      <section id="communities" class="tab-content">
+        <div class="card" id="community-actions-card">
+          <div class="community-actions" style="margin-bottom: 1.5rem">
+            <h2 class="card-title">Eco Communities</h2>
+            <button class="btn btn-primary" id="create-community-btn">
+              Create Community
+            </button>
+            <button class="btn btn-secondary" id="join-community-btn">
+              Join Community
+            </button>
+            <button class="btn btn-outline" id="browse-communities-btn">
+              Browse Public Communities
+            </button>
+          </div>
+        </div>
+
+        <!-- My Communities -->
+        <div class="card" id="my-communities-card">
+          <h3 class="card-title">My Communities</h3>
+          <div id="my-communities-container">
+            <div class="loading-state" id="communities-loading">
+              <p>Loading your communities...</p>
+            </div>
+            <div class="empty-state hidden" id="communities-empty">
+              <p>
+                You haven't joined any communities yet. Create one or join
+                existing communities to get started!
+              </p>
+            </div>
+            <div id="my-communities-list"></div>
+          </div>
+        </div>
+
+        <!-- Public Communities (hidden by default) -->
+        <div class="card hidden" id="public-communities-card">
+          <h3 class="card-title">Public Communities</h3>
+          <div id="public-communities-container">
+            <div id="public-communities-list"></div>
+          </div>
+        </div>
+
+        <!-- Community Chat (hidden by default) -->
+        <div class="card hidden" id="community-chat-card">
+          <div class="chat-header">
+            <button class="btn btn-outline" id="back-to-communities">
+              Back to Communities
+            </button>
+            <h3 class="card-title" id="chat-community-name">Community Name</h3>
+            <div class="community-info">
+              <span id="chat-member-count">0 members</span>
+              <button class="btn btn-outline btn-sm" id="leave-community-btn">
+                Leave
+              </button>
+            </div>
+          </div>
+
+          <div class="chat-messages" id="chat-messages">
+            <!-- Messages will be loaded here -->
+          </div>
+
+          <div class="chat-input-container">
+            <div class="message-type-selector">
+              <select id="message-type" class="form-select">
+                <option value="text">Message</option>
+                <option value="task">Eco Task</option>
+                <option value="achievement">🏆 Achievement</option>
+                <option value="announcement">📢 Announcement</option>
+              </select>
+              <button
+                class="btn btn-outline btn-sm"
+                id="share-join-code-btn"
+                title="Share join code"
+              >
+                Share Code
+              </button>
+            </div>
+            <div class="chat-input">
+              <textarea
+                id="message-input"
+                placeholder="Type your message..."
+                rows="2"
+                class="form-textarea"
+              ></textarea>
+              <button class="btn btn-primary" id="send-message-btn">
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- All Achievements Tab (new) -->
+      <section id="all-achievements" class="tab-content">
+        <button
+          class="btn btn-secondary go-back-btn"
+          style="margin-bottom: 1rem"
+          data-go-back="profile"
+        >
+          Go Back
+        </button>
+        <div class="card">
+          <h2 class="card-title">🏆 All Achievements</h2>
+          <div id="achievements-container" class="achievements-grid">
+            <!-- All achievements will be populated here by JS -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="dashboard">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h7.5"
+          />
+        </svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-item" data-tab="habits">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <span>Habits</span>
+      </button>
+      <button class="nav-item" data-tab="suggestions">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.354a15.056 15.056 0 01-4.5 0m3.75-12.454c0-1.193.255-2.326.72-3.354m-1.44 3.354c-.465 1.028-.72 2.161-.72 3.354m0 0a9.037 9.037 0 014.5 0m-4.5 0a9.037 9.037 0 00-4.5 0m9.037 9.037a9.037 9.037 0 01-4.5 0m4.5 0a9.037 9.037 0 004.5 0m-9.037-9.037c0-1.193.255-2.326.72-3.354m-1.44 3.354c-.465 1.028-.72 2.161-.72 3.354"
+          />
+        </svg>
+        <span>Ideas</span>
+      </button>
+      <button class="nav-item" data-tab="communities">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
+          />
+        </svg>
+        <span>Communities</span>
+      </button>
+      <button class="nav-item" data-tab="profile">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+          />
+        </svg>
+        <span>Profile</span>
+      </button>
+    </nav>
+
+    <!-- Modals (Initially hidden) -->
+    <div id="custom-message-box" class="modal-overlay hidden">
+      <div class="modal-panel" style="text-align: center">
+        <p
+          id="message-box-text"
+          style="font-size: 1.125rem; margin-bottom: 1.5rem"
+        ></p>
+        <button id="message-box-ok" class="btn btn-primary">OK</button>
+      </div>
+    </div>
+
+    <!-- Community Modals -->
+    <div id="create-community-modal" class="modal-overlay hidden">
+      <div class="modal-panel">
+        <h3 style="margin-bottom: 1.5rem">Create New Community</h3>
+        <form id="create-community-form">
+          <div class="form-group">
+            <label for="community-name">Community Name</label>
+            <input
+              type="text"
+              id="community-name"
+              class="form-input"
+              placeholder="Enter community name"
+              required
+              maxlength="100"
+            />
+          </div>
+          <div class="form-group">
+            <label for="community-description">Description</label>
+            <textarea
+              id="community-description"
+              class="form-textarea"
+              placeholder="Describe your community's eco-friendly goals..."
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="community-private" />
+              <span>Private community (join by invite code only)</span>
+            </label>
+          </div>
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn btn-outline"
+              id="cancel-create-community"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              id="submit-create-community"
+            >
+              Create Community
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="join-community-modal" class="modal-overlay hidden">
+      <div class="modal-panel">
+        <h3 style="margin-bottom: 1.5rem">Join Community</h3>
+        <form id="join-community-form">
+          <div class="form-group">
+            <label for="join-code">Enter Join Code</label>
+            <input
+              type="text"
+              id="join-code"
+              class="form-input"
+              placeholder="Enter 8-character join code"
+              required
+              maxlength="8"
+              style="text-transform: uppercase"
+            />
+            <small class="form-help">
+              Ask community admins for the join code
+            </small>
+          </div>
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn btn-outline"
+              id="cancel-join-community"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              id="submit-join-community"
+            >
+              Join Community
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modals (Initially hidden) -->
+    <div id="add-habit-modal" class="modal-overlay hidden">
+      <!-- ... modal content ... -->
+    </div>
+    <div id="custom-message-box" class="modal-overlay hidden">
+      <!-- ... modal content ... -->
+    </div>
+    <script src="{% static 'app.js' %}"></script>
+    <script src="{% static 'api.js' %}"></script>
+    <script src="{% static 'script.js' %}"></script>
+    <script type="module" src="{% static 'notifications_fcm.js' %}"></script>
+    <script src="{% static 'communities.js' %}"></script>
+    <script>
+      document.addEventListener("click", function (e) {
+        const btn = e.target.closest("button[data-tab]");
+        if (btn && !btn.classList.contains("nav-item")) {
+          const tab = btn.getAttribute("data-tab");
+          // Deactivate all nav and tab-content
+          document
+            .querySelectorAll(".nav-item")
+            .forEach((nav) => nav.classList.remove("active"));
+          document
+            .querySelectorAll(".tab-content")
+            .forEach((tabC) => tabC.classList.remove("active"));
+          // Activate the correct nav and tab-content
+          document
+            .querySelector(`.nav-item[data-tab='${tab}']`)
+            ?.classList.add("active");
+          document.getElementById(tab)?.classList.add("active");
+          // Special logic for checkin and all-achievements
+          if (window.app && tab === "checkin") {
+            window.app.renderDailyQuestionnaire();
+          }
+          if (window.app && tab === "all-achievements") {
+            window.app.loadAchievements();
+          }
+          // Special logic for communities
+          if (window.communityManager && tab === "communities") {
+            window.communityManager.loadUserCommunities();
+          }
+        }
+      });
+    </script>
+    <script src="https://cdn.botpress.cloud/webchat/v3.1/inject.js"></script>
+    <script src="https://files.bpcontent.cloud/2025/07/16/15/20250716154126-ZIHROWQT.js"></script>
+  </body>
+</html>

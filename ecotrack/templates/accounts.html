@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>EcoTrack - Accounts</title>
+    <link
+            href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap"
+            rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'accounts.css' %}"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'icons/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static '/icons/site.webmanifest' %}">
+    <meta name="msapplication-TileColor" content="#9987f8">
+    <meta name="theme-color" content="#dcfce7">
+</head>
+<body>
+<div class="auth-container">
+
+    <div class="auth-logo"><img src="{% static 'icons/ecotrack_logo.png' %}" class="website-logo">EcoTrack</div>
+    <div class="auth-tabs">
+        <div class="auth-tab active" id="login-tab" onclick="showTab('login')">
+            Login
+        </div>
+        <div class="auth-tab" id="signup-tab" onclick="showTab('signup')">
+            Create Account
+        </div>
+    </div>
+    <form class="auth-form active" id="login-form" autocomplete="off">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="login-email">Email</label>
+            <input
+                    type="email"
+                    id="login-email"
+                    placeholder="Enter your email"
+                    required
+            />
+        </div>
+        <div class="form-group">
+            <label for="login-password">Password</label>
+            <input
+                    type="password"
+                    id="login-password"
+                    placeholder="Enter your password"
+                    required
+            />
+        </div>
+        <button class="auth-btn" type="submit">Login</button>
+        <div class="auth-switch">
+            Don't have an account?<span onclick="showTab('signup')"
+        >Create one</span
+        >
+        </div>
+    </form>
+    <form class="auth-form" id="signup-form" autocomplete="off">
+        <div class="form-group">
+            <label for="signup-email">Email</label>
+            <input
+                    type="email"
+                    id="signup-email"
+                    placeholder="Enter your email"
+                    required
+            />
+        </div>
+        <div class="form-group">
+            <label for="signup-password">Password</label>
+            <input
+                    type="password"
+                    id="signup-password"
+                    placeholder="Create a password"
+                    required
+            />
+        </div>
+        <div class="form-group">
+            <label for="signup-confirm">Confirm Password</label>
+            <input
+                    type="password"
+                    id="signup-confirm"
+                    placeholder="Confirm your password"
+                    required
+            />
+        </div>
+        <button class="auth-btn" type="submit">Create Account</button>
+        <div class="auth-switch">
+            Already have an account?<span onclick="showTab('login')">Login</span>
+        </div>
+    </form>
+</div>
+<script>
+    function showTab(tab) {
+        document
+            .getElementById("login-tab")
+            .classList.toggle("active", tab === "login");
+        document
+            .getElementById("signup-tab")
+            .classList.toggle("active", tab === "signup");
+        document
+            .getElementById("login-form")
+            .classList.toggle("active", tab === "login");
+        document
+            .getElementById("signup-form")
+            .classList.toggle("active", tab === "signup");
+    }
+</script>
+<script src="{% static 'accounts.js' %}"></script>
+</body>
+</html>
