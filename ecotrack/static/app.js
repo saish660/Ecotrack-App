@@ -196,6 +196,10 @@ class EcoTrackApp {
         }
         // Initialize suggestions
         this.renderSuggestions();
+        const reloadBtn = document.getElementById("reload-suggestions-btn");
+        if (reloadBtn) {
+            reloadBtn.addEventListener("click", () => this.renderSuggestions());
+        }
         // Initialize go-back buttons
         this.initializeGoBackButtons();
         // Initialize 3D ecosystem visualization
@@ -459,38 +463,97 @@ class EcoTrackApp {
         const container = document.getElementById("suggestion-cards-container");
         if (!container) return;
 
-        const suggestions = await fetch("get_suggestions", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCsrfToken(),
-            },
-            body: {}
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok (${response.status})`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                return data.data;
-            })
+        // Ensure a status element exists for user-facing messages
+        let statusEl = document.getElementById("suggestions-status");
+        if (!statusEl) {
+            statusEl = document.createElement("div");
+            statusEl.id = "suggestions-status";
+            statusEl.className = "status-line";
+            // Insert before the container if possible
+            const suggestionsSection = document.getElementById("suggestions");
+            if (suggestionsSection) {
+                suggestionsSection.insertBefore(statusEl, container);
+            } else {
+                // fallback: prepend inside container
+                container.prepend(statusEl);
+            }
+        }
+        statusEl.textContent = "";
 
+        // Show loading animation while waiting for AI (Gemini) suggestions
         container.innerHTML = "";
-        suggestions.forEach((suggestion) => {
-            const card = document.createElement("div");
-            card.className = "suggestion-card";
-            card.innerHTML = `
-                <h3>${suggestion.title}</h3>
-                <p>${suggestion.reason}</p>
-                <div>
-                    <span class="suggestion-reduction">${suggestion.carbonReduction}</span>
-                </div>
-                <button class="btn btn-secondary add-suggestion-to-habits-btn" data-title="${suggestion.title}">Start This Habit</button>
-            `;
-            container.appendChild(card);
-        });
+        const loading = document.createElement("div");
+        loading.id = "suggestions-loading";
+        loading.className = "suggestions-loading";
+        loading.innerHTML = '<div class="spinner" aria-hidden="true"></div><p>Generating ideas with AI…</p>';
+        container.appendChild(loading);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s max
+
+        try {
+            const response = await fetch("get_suggestions", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                body: {},
+                signal: controller.signal,
+            });
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`Network response was not ok (${response.status})`);
+            }
+
+            const data = await response.json();
+            const suggestions = data?.data ?? [];
+
+            container.innerHTML = ""; // remove loading
+
+            if (!Array.isArray(suggestions) || suggestions.length === 0) {
+                statusEl.textContent = "No AI suggestions available right now. Please try again later.";
+                // Provide a subtle retry button
+                const retryBtn = document.createElement("button");
+                retryBtn.className = "btn btn-outline";
+                retryBtn.textContent = "Retry";
+                retryBtn.addEventListener("click", () => this.renderSuggestions());
+                container.appendChild(retryBtn);
+                return;
+            }
+
+            suggestions.forEach((suggestion) => {
+                const card = document.createElement("div");
+                card.className = "suggestion-card";
+                card.innerHTML = `
+                    <h3>${suggestion.title}</h3>
+                    <p>${suggestion.reason}</p>
+                    <div>
+                        <span class="suggestion-reduction">${suggestion.carbonReduction}</span>
+                    </div>
+                    <button class="btn btn-secondary add-suggestion-to-habits-btn" data-title="${suggestion.title}">Start This Habit</button>
+                `;
+                container.appendChild(card);
+            });
+            statusEl.textContent = ""; // clear any previous status on success
+        } catch (err) {
+            clearTimeout(timeoutId);
+            container.innerHTML = ""; // remove loading
+            let msg = '';
+            if (err?.name === 'AbortError') {
+                msg = "AI took too long to respond (20s). Please try again.";
+            } else {
+                msg = `Couldn't load suggestions: ${err?.message || 'Unknown error'}`;
+            }
+            statusEl.textContent = msg;
+
+            const retryBtn = document.createElement("button");
+            retryBtn.className = "btn btn-outline";
+            retryBtn.textContent = "Retry";
+            retryBtn.addEventListener("click", () => this.renderSuggestions());
+            container.appendChild(retryBtn);
+        }
     }
 
     bindQuestionnaireEvents() {

@@ -818,6 +818,37 @@ main {
   grid-template-columns: 1fr;
   gap: 1rem;
 }
+/* Suggestions status line and loading */
+#suggestions-status {
+  margin: 0 0 0.5rem 0.5rem;
+  color: var(--text-color-secondary);
+  font-size: 0.95rem;
+  min-height: 1.25rem; /* reserve space to reduce layout shift */
+}
+.suggestions-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--border-radius);
+  background: #f8fafc;
+}
+.suggestions-loading p {
+  margin: 0;
+  color: var(--text-color-secondary);
+}
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #e2e8f0;
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 @media (min-width: 640px) {
   #suggestion-cards-container {
     grid-template-columns: repeat(2, 1fr);
@@ -1871,5 +1902,5 @@ input[type="checkbox"]:checked + .toggle-slider:before {
 }
 
 #test-notification-btn {
-  /* display: none !important; */
+  display: none !important;
 }
