@@ -26,12 +26,18 @@
         onNotificationPermissionResult: (granted) => {
           if (granted) {
             this.toggleEl.checked = true;
-            this.saveLocalPrefs({ enabled: true, time: this.timeEl?.value || "09:00" });
+            this.saveLocalPrefs({
+              enabled: true,
+              time: this.timeEl?.value || "09:00",
+            });
             this.registerDevice();
             this.status("Notification permission granted", "success");
           } else {
             this.toggleEl.checked = false;
-            this.saveLocalPrefs({ enabled: false, time: this.timeEl?.value || "09:00" });
+            this.saveLocalPrefs({
+              enabled: false,
+              time: this.timeEl?.value || "09:00",
+            });
             this.status("Notification permission denied", "warning");
           }
         },
@@ -233,7 +239,10 @@
           return;
         }
         try {
-          if (window.Android && ("requestNotificationPermission" in window.Android)) {
+          if (
+            window.Android &&
+            "requestNotificationPermission" in window.Android
+          ) {
             window.Android.requestNotificationPermission();
             this.status("Requesting notification permission...", "info");
             return; // wait for window.EcoTrackPush.onNotificationPermissionResult(...)
@@ -309,12 +318,18 @@
           this.status("Subscribed to notifications", "success");
         } else {
           this.toggleEl.checked = false;
-          this.saveLocalPrefs({ enabled: false, time: this.timeEl?.value || "09:00" });
+          this.saveLocalPrefs({
+            enabled: false,
+            time: this.timeEl?.value || "09:00",
+          });
           this.status(data.message || "Failed to subscribe", "error");
         }
       } catch (e) {
         this.toggleEl.checked = false;
-        this.saveLocalPrefs({ enabled: false, time: this.timeEl?.value || "09:00" });
+        this.saveLocalPrefs({
+          enabled: false,
+          time: this.timeEl?.value || "09:00",
+        });
         this.status("Network error subscribing", "error");
       }
     }
@@ -339,7 +354,10 @@
         this.status("Network error unsubscribing", "error");
       }
       // Ensure local state reflects disabled
-      this.saveLocalPrefs({ enabled: false, time: this.timeEl?.value || "09:00" });
+      this.saveLocalPrefs({
+        enabled: false,
+        time: this.timeEl?.value || "09:00",
+      });
     }
 
     status(msg, type = "info") {
