@@ -225,7 +225,7 @@ main {
   display: inline-block;
   width: 100%;
   padding: 0.875rem 1.5rem;
-  border-radius: var(--border-radius);
+  border-radius: 10px;
   font-weight: 600;
   font-size: 1rem;
   text-align: center;
