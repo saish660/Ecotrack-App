@@ -185,10 +185,22 @@
         >
           Personalized Suggestions
         </h2>
-        <div style="display: flex; justify-content: flex-end; margin: -0.5rem 0 0.75rem 0;">
-          <button id="reload-suggestions-btn" class="btn btn-outline">Reload Suggestions</button>
+        <div
+          style="
+            display: flex;
+            justify-content: flex-end;
+            margin: -0.5rem 0 0.75rem 0;
+          "
+        >
+          <button id="reload-suggestions-btn" class="btn btn-outline">
+            Reload Suggestions
+          </button>
         </div>
-        <div id="suggestions-status" class="status-line" aria-live="polite"></div>
+        <div
+          id="suggestions-status"
+          class="status-line"
+          aria-live="polite"
+        ></div>
         <div id="suggestion-cards-container"></div>
       </section>
 
@@ -592,9 +604,9 @@
     </div>
     <script src="{% static 'app.js' %}"></script>
     <script src="{% static 'api.js' %}"></script>
-  <script src="{% static 'script.js' %}"></script>
-  <script src="{% static 'android_notifications.js' %}"></script>
-  <script src="{% static 'push_settings.js' %}"></script>
+    <script src="{% static 'script.js' %}"></script>
+    <script src="{% static 'android_notifications.js' %}"></script>
+    <script src="{% static 'push_settings.js' %}"></script>
     <script src="{% static 'communities.js' %}"></script>
     <script>
       document.addEventListener("click", function (e) {
