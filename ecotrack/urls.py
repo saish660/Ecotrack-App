@@ -15,13 +15,21 @@ urlpatterns = [
     path("submit_questionnaire", views.submit_questionnaire, name="submit_questionnaire"),
     path("get_suggestions", views.get_suggestions, name="get_suggestions"),
     path("get_questions", views.get_questions, name="get_questions"),
+    path("android-guide", views.android_guide, name="android_guide"),
     
-    # Push notification endpoints
-    path("api/notifications/subscribe", views.subscribe_push, name="subscribe_push"),
-    path("api/notifications/unsubscribe", views.unsubscribe_push, name="unsubscribe_push"),
-    path("api/notifications/update-time", views.update_notification_time, name="update_notification_time"),
-    path("api/notifications/test", views.test_notification, name="test_notification"),
-    path("api/notifications/settings", views.get_notification_settings, name="get_notification_settings"),
+    # Android device and notification endpoints
+    # Support both with and without trailing slashes to avoid POST 404s with APPEND_SLASH
+    path("api/android/register", views.register_android_device, name="register_android_device"),
+    path("api/android/register/", views.register_android_device),
+    path("api/android/unregister", views.unregister_android_device, name="unregister_android_device"),
+    path("api/android/unregister/", views.unregister_android_device),
+    path("api/android/update-settings", views.update_notification_settings, name="update_notification_settings"),
+    path("api/android/update-settings/", views.update_notification_settings),
+    path("api/android/test-notification", views.test_notification, name="test_notification"),
+    path("api/android/test-notification/", views.test_notification),
+    path("api/android/devices", views.get_android_devices, name="get_android_devices"),
+    path("api/android/devices/", views.get_android_devices),
+    path("api/android/send-achievement", views.send_achievement_notification, name="send_achievement_notification"),
     # Cron dispatcher (external scheduler calls this every minute)
     path("api/cron/dispatch", views.cron_dispatch, name="cron_dispatch"),
     

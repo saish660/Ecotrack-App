@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from datetime import datetime, timedelta
+from django.utils import timezone
 import json
 
 
@@ -39,44 +40,130 @@ class User(AbstractUser):
         return self.username
 
 
-class PushSubscription(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='push_subscription')
-    endpoint = models.TextField()
-    p256dh_key = models.TextField()  
-    auth_key = models.TextField()
-    # FCM token for Firebase Cloud Messaging
-    fcm_token = models.TextField(blank=True, null=True)
-    # Device/platform information for better targeting
-    device_type = models.CharField(max_length=50, default='web', blank=True, null=True)  # 'web', 'android', 'ios'
-    notification_time = models.TimeField(default=datetime.strptime('09:00', '%H:%M').time())  # Default to 9:00 AM
+class AndroidDevice(models.Model):
+    """
+    Model representing an Android device registered for push notifications.
+    Stores all subscription and device details server-side - no device-side subscription loading.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='android_devices')
+    fcm_token = models.TextField(unique=True)  # FCM registration token
+    device_id = models.CharField(max_length=255, unique=True)  # Android device identifier
+    
+    # Device information
+    device_name = models.CharField(max_length=100, blank=True, null=True)  # User-friendly device name
+    device_model = models.CharField(max_length=100, blank=True, null=True)  # Device model info
+    manufacturer = models.CharField(max_length=50, blank=True, null=True)  # Device manufacturer
+    android_version = models.CharField(max_length=20, blank=True, null=True)  # Android OS version
+    app_version = models.CharField(max_length=50, blank=True, null=True)  # EcoTrack app version
+    screen_density = models.CharField(max_length=20, blank=True, null=True)  # Screen density (hdpi, xhdpi, etc.)
+    language = models.CharField(max_length=10, default='en')  # Device language
+    
+    # Notification configuration - all stored server-side
+    notification_time = models.TimeField(default=datetime.strptime('09:00', '%H:%M').time())
+    timezone = models.CharField(max_length=50, default='UTC')  # User's timezone
     is_active = models.BooleanField(default=True)
+    
+    # Granular notification preferences - stored on server
+    daily_reminders_enabled = models.BooleanField(default=True)
+    community_notifications_enabled = models.BooleanField(default=True)
+    achievement_notifications_enabled = models.BooleanField(default=True)
+    system_notifications_enabled = models.BooleanField(default=True)  # App updates, maintenance, etc.
+    
+    # Activity tracking
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    # De-duplication tracking to avoid multiple sends in the same day for the same scheduled time
-    last_sent_date = models.DateField(null=True, blank=True)
-    last_sent_time = models.TimeField(null=True, blank=True)
+    last_seen = models.DateTimeField(auto_now=True)
+    
+    # Notification delivery tracking - for analytics and debugging
+    total_notifications_sent = models.PositiveIntegerField(default=0)
+    last_notification_sent = models.DateTimeField(null=True, blank=True)
+    last_sent_date = models.DateField(null=True, blank=True)  # For daily reminder deduplication
+    last_sent_time = models.TimeField(null=True, blank=True)  # For daily reminder deduplication
+    
+    # FCM token management
+    token_last_updated = models.DateTimeField(null=True, blank=True)
+    token_refresh_count = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        ordering = ['-last_seen']
+        unique_together = ['user', 'device_id']
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+            models.Index(fields=['fcm_token']),
+            models.Index(fields=['notification_time', 'timezone']),
+            models.Index(fields=['last_sent_date', 'last_sent_time']),
+        ]
     
     def __str__(self):
-        return f"{self.user.username} - Push Subscription"
-    
-    def get_subscription_info(self):
-        """Return subscription info in the format expected by pywebpush"""
-        return {
-            'endpoint': self.endpoint,
-            'keys': {
-                'p256dh': self.p256dh_key,
-                'auth': self.auth_key
-            }
-        }
+        device_name = self.device_name or self.device_model or f'Device {self.device_id[:8]}...'
+        return f"{self.user.username} - {device_name}"
     
     def get_fcm_token(self):
         """Return FCM token for Firebase messaging"""
-        return self.fcm_token or ''
+        return self.fcm_token
     
     def has_valid_fcm_token(self):
-        """Check if subscription has a valid FCM token"""
-        token = self.get_fcm_token()
-        return bool(token and token.strip())
+        """Check if device has a valid FCM token"""
+        return bool(self.fcm_token and self.fcm_token.strip())
+    
+    def update_last_seen(self):
+        """Update last seen timestamp"""
+        self.last_seen = timezone.now()
+        self.save(update_fields=['last_seen'])
+    
+    def update_fcm_token(self, new_token):
+        """Update FCM token and track refresh"""
+        self.fcm_token = new_token
+        self.token_last_updated = timezone.now()
+        self.token_refresh_count += 1
+        self.save(update_fields=['fcm_token', 'token_last_updated', 'token_refresh_count'])
+    
+    def increment_notification_count(self):
+        """Increment notification counter and update last sent timestamp"""
+        self.total_notifications_sent += 1
+        self.last_notification_sent = timezone.now()
+        self.save(update_fields=['total_notifications_sent', 'last_notification_sent'])
+    
+    def get_device_info(self):
+        """Return comprehensive device information dictionary"""
+        return {
+            'device_id': self.device_id,
+            'device_name': self.device_name,
+            'device_model': self.device_model,
+            'manufacturer': self.manufacturer,
+            'android_version': self.android_version,
+            'app_version': self.app_version,
+            'language': self.language,
+            'screen_density': self.screen_density,
+        }
+    
+    def get_notification_preferences(self):
+        """Return notification preferences dictionary"""
+        return {
+            'daily_reminders': self.daily_reminders_enabled,
+            'community_notifications': self.community_notifications_enabled,
+            'achievement_notifications': self.achievement_notifications_enabled,
+            'system_notifications': self.system_notifications_enabled,
+            'notification_time': self.notification_time.strftime('%H:%M'),
+            'timezone': self.timezone,
+        }
+    
+    def is_scheduled_for_notification(self, current_time, current_date):
+        """
+        Check if device is scheduled to receive notification at current time.
+        All scheduling logic is server-side.
+        """
+        if not self.is_active or not self.daily_reminders_enabled:
+            return False
+        
+        # Check if already sent today at this exact time
+        if (self.last_sent_date == current_date and 
+            self.last_sent_time == current_time):
+            return False
+        
+        # Check if notification time matches
+        return (self.notification_time.hour == current_time.hour and 
+                self.notification_time.minute == current_time.minute)
 
 
 class Community(models.Model):

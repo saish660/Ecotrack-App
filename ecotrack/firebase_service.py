@@ -67,24 +67,20 @@ class FCMService:
                 notification=notification,
                 data=data_payload,
                 token=token,
-                # Web-specific configuration
-                webpush=messaging.WebpushConfig(
-                    notification=messaging.WebpushNotification(
+                # Android-specific configuration
+                android=messaging.AndroidConfig(
+                    ttl=3600,  # Time to live in seconds
+                    priority='high',
+                    notification=messaging.AndroidNotification(
                         title=title,
                         body=body,
-                        icon='/static/icons/ecotrack_logo.png',
-                        badge='/static/icons/favicon-32x32.png',
-                        tag='daily-reminder',
-                        actions=[
-                            messaging.WebpushNotificationAction(
-                                action='open_app',
-                                title='Open EcoTrack'
-                            )
-                        ]
+                        icon='ic_notification',  # Use app's notification icon
+                        color='#4CAF50',  # Green color for eco theme
+                        sound='default',
+                        click_action='FLUTTER_NOTIFICATION_CLICK',  # For Flutter apps
+                        channel_id='ecotrack_notifications'  # Notification channel
                     ),
-                    headers={
-                        'TTL': '3600'  # Time to live in seconds
-                    }
+                    collapse_key='ecotrack_reminder',  # Collapse similar notifications
                 )
             )
             
@@ -146,23 +142,19 @@ class FCMService:
                 notification=notification,
                 data=data_payload,
                 tokens=tokens,
-                webpush=messaging.WebpushConfig(
-                    notification=messaging.WebpushNotification(
+                android=messaging.AndroidConfig(
+                    ttl=3600,
+                    priority='high',
+                    notification=messaging.AndroidNotification(
                         title=title,
                         body=body,
-                        icon='/static/icons/ecotrack_logo.png',
-                        badge='/static/icons/favicon-32x32.png',
-                        tag='daily-reminder',
-                        actions=[
-                            messaging.WebpushNotificationAction(
-                                action='open_app',
-                                title='Open EcoTrack'
-                            )
-                        ]
+                        icon='ic_notification',
+                        color='#4CAF50',
+                        sound='default',
+                        click_action='FLUTTER_NOTIFICATION_CLICK',
+                        channel_id='ecotrack_notifications'
                     ),
-                    headers={
-                        'TTL': '3600'
-                    }
+                    collapse_key='ecotrack_reminder',
                 )
             )
             
@@ -220,17 +212,18 @@ class FCMService:
                 notification=notification,
                 data=data_payload,
                 topic=topic,
-                webpush=messaging.WebpushConfig(
-                    notification=messaging.WebpushNotification(
+                android=messaging.AndroidConfig(
+                    ttl=3600,
+                    priority='high',
+                    notification=messaging.AndroidNotification(
                         title=title,
                         body=body,
-                        icon='/static/icons/ecotrack_logo.png',
-                        badge='/static/icons/favicon-32x32.png',
-                        tag='daily-reminder'
-                    ),
-                    headers={
-                        'TTL': '3600'
-                    }
+                        icon='ic_notification',
+                        color='#4CAF50',
+                        sound='default',
+                        click_action='FLUTTER_NOTIFICATION_CLICK',
+                        channel_id='ecotrack_notifications'
+                    )
                 )
             )
             
@@ -259,7 +252,11 @@ class FCMService:
             # Send a test message with dry_run=True
             message = messaging.Message(
                 data={'test': 'true'},
-                token=token
+                token=token,
+                android=messaging.AndroidConfig(
+                    ttl=3600,
+                    priority='normal'
+                )
             )
             
             # This will validate the token without actually sending
@@ -271,3 +268,87 @@ class FCMService:
         except Exception as e:
             logger.error(f"validate_token: Exception during token validation: {type(e).__name__} - {e}")
             return False
+    
+    @classmethod
+    def send_data_message(cls, token: str, data: Dict) -> bool:
+        """
+        Send a data-only message (silent notification) to Android.
+        
+        Args:
+            token: FCM registration token
+            data: Data payload
+        
+        Returns:
+            bool: True if sent successfully, False otherwise
+        """
+        cls.initialize()
+        
+        try:
+            # Create data-only message for Android
+            message = messaging.Message(
+                data=data,
+                token=token,
+                android=messaging.AndroidConfig(
+                    ttl=3600,
+                    priority='high',
+                    collapse_key='ecotrack_data',
+                )
+            )
+            
+            response = messaging.send(message)
+            logger.info(f"FCM data message sent successfully. Response: {response}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to send FCM data message: {e}")
+            return False
+    
+    @classmethod
+    def subscribe_to_topic(cls, tokens: List[str], topic: str) -> Dict:
+        """
+        Subscribe devices to a topic for targeted messaging.
+        
+        Args:
+            tokens: List of FCM registration tokens
+            topic: Topic name
+        
+        Returns:
+            dict: Results with success_count and failure_count
+        """
+        cls.initialize()
+        
+        try:
+            response = messaging.subscribe_to_topic(tokens, topic)
+            logger.info(f"Subscribed {response.success_count} devices to topic '{topic}'")
+            return {
+                'success_count': response.success_count,
+                'failure_count': response.failure_count
+            }
+        except Exception as e:
+            logger.error(f"Failed to subscribe to topic '{topic}': {e}")
+            return {'success_count': 0, 'failure_count': len(tokens)}
+    
+    @classmethod
+    def unsubscribe_from_topic(cls, tokens: List[str], topic: str) -> Dict:
+        """
+        Unsubscribe devices from a topic.
+        
+        Args:
+            tokens: List of FCM registration tokens
+            topic: Topic name
+        
+        Returns:
+            dict: Results with success_count and failure_count
+        """
+        cls.initialize()
+        
+        try:
+            response = messaging.unsubscribe_from_topic(tokens, topic)
+            logger.info(f"Unsubscribed {response.success_count} devices from topic '{topic}'")
+            return {
+                'success_count': response.success_count,
+                'failure_count': response.failure_count
+            }
+        except Exception as e:
+            logger.error(f"Failed to unsubscribe from topic '{topic}': {e}")
+            return {'success_count': 0, 'failure_count': len(tokens)}

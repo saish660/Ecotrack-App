@@ -1,0 +1,363 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EcoTrack Android App Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      .header {
+        text-align: center;
+        color: white;
+        margin-bottom: 3rem;
+      }
+
+      .header h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+      }
+
+      .card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .card h2 {
+        color: #4caf50;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+      }
+
+      .step {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #eee;
+      }
+
+      .step:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+      }
+
+      .step-number {
+        background: #4caf50;
+        color: white;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-right: 1rem;
+        flex-shrink: 0;
+      }
+
+      .step-content h3 {
+        margin-bottom: 0.5rem;
+        color: #333;
+      }
+
+      .step-content p {
+        color: #666;
+        margin-bottom: 0.5rem;
+      }
+
+      .code-block {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+        font-family: "Monaco", "Courier New", monospace;
+        font-size: 0.9rem;
+        color: #495057;
+      }
+
+      .api-endpoint {
+        background: #e8f5e8;
+        border-left: 4px solid #4caf50;
+        padding: 1rem;
+        margin: 1rem 0;
+      }
+
+      .api-endpoint strong {
+        color: #2e7d2e;
+      }
+
+      .warning {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 1rem;
+        margin: 1rem 0;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin: 2rem 0;
+      }
+
+      .feature-item {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .back-link {
+        display: inline-block;
+        background: white;
+        color: #667eea;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        margin-top: 2rem;
+        transition: all 0.3s ease;
+      }
+
+      .back-link:hover {
+        background: #f8f9fa;
+        transform: translateY(-2px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🌱 EcoTrack Android App</h1>
+        <p>
+          Native Android application with Firebase Cloud Messaging integration
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>📱 Android App Features</h2>
+        <div class="feature-grid">
+          <div class="feature-item">
+            <div class="feature-icon">🔔</div>
+            <h3>Push Notifications</h3>
+            <p>Daily reminders, community updates, and achievement alerts</p>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🏘️</div>
+            <h3>Community Integration</h3>
+            <p>Real-time notifications for community messages and activities</p>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🏆</div>
+            <h3>Achievement System</h3>
+            <p>Get notified when you unlock new eco-friendly achievements</p>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">⚙️</div>
+            <h3>Customizable Settings</h3>
+            <p>Configure notification preferences per device</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🔧 Android Integration Guide</h2>
+
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Firebase Setup</h3>
+            <p>Add Firebase Cloud Messaging to your Android app:</p>
+            <div class="code-block">
+              implementation 'com.google.firebase:firebase-messaging:23.0.0'
+              implementation 'com.google.firebase:firebase-analytics:21.0.0'
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Device Registration</h3>
+            <p>Register the Android device with the backend:</p>
+            <div class="api-endpoint">
+              <strong>POST</strong> /api/android/register
+            </div>
+            <div class="code-block">
+              { "fcmToken": "device_fcm_token", "deviceId":
+              "unique_device_identifier", "deviceName": "User's Device Name",
+              "deviceModel": "Samsung Galaxy S21", "appVersion": "1.0.0",
+              "notificationTime": "09:00", "timezone": "America/New_York" }
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>Notification Channels</h3>
+            <p>Create notification channels in your Android app:</p>
+            <div class="code-block">
+              NotificationChannel channel = new NotificationChannel(
+              "ecotrack_notifications", "EcoTrack Notifications",
+              NotificationManager.IMPORTANCE_DEFAULT );
+              channel.setDescription("Daily reminders and eco-friendly tips");
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>Handle Incoming Notifications</h3>
+            <p>Process FCM messages in your FirebaseMessagingService:</p>
+            <div class="code-block">
+              @Override public void onMessageReceived(RemoteMessage
+              remoteMessage) { Map&lt;String, String&gt; data =
+              remoteMessage.getData(); String type = data.get("type");
+              switch(type) { case "daily_reminder": // Handle daily check-in
+              reminder break; case "community": // Handle community message
+              break; case "achievement": // Handle achievement notification
+              break; } }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📡 API Endpoints</h2>
+
+        <div class="api-endpoint">
+          <strong>POST /api/android/register</strong><br />
+          Register a new Android device for notifications
+        </div>
+
+        <div class="api-endpoint">
+          <strong>POST /api/android/unregister</strong><br />
+          Unregister an Android device
+        </div>
+
+        <div class="api-endpoint">
+          <strong>POST /api/android/update-settings</strong><br />
+          Update device notification preferences
+        </div>
+
+        <div class="api-endpoint">
+          <strong>GET /api/android/devices</strong><br />
+          Get all registered devices for the user
+        </div>
+
+        <div class="api-endpoint">
+          <strong>POST /api/android/test-notification</strong><br />
+          Send a test notification to verify setup
+        </div>
+
+        <div class="api-endpoint">
+          <strong>POST /api/android/send-achievement</strong><br />
+          Send achievement notification to user's devices
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🔔 Notification Types</h2>
+
+        <div class="step">
+          <div class="step-number">📅</div>
+          <div class="step-content">
+            <h3>Daily Reminders</h3>
+            <p>
+              Automated notifications sent at user-configured times to encourage
+              daily check-ins
+            </p>
+            <div class="code-block">
+              Data payload: { "type": "daily_reminder", "action": "open_app",
+              "screen": "dashboard" }
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">🏘️</div>
+          <div class="step-content">
+            <h3>Community Messages</h3>
+            <p>
+              Real-time notifications when someone posts in your communities
+            </p>
+            <div class="code-block">
+              Data payload: { "type": "community", "action": "open_community",
+              "community_id": "123", "message_id": "456", "sender": "username" }
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">🏆</div>
+          <div class="step-content">
+            <h3>Achievement Notifications</h3>
+            <p>Celebratory notifications when users unlock new achievements</p>
+            <div class="code-block">
+              Data payload: { "type": "achievement", "action":
+              "open_achievements", "achievement_type": "streak_milestone" }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="warning">
+        <strong>⚠️ Important Notes:</strong>
+        <ul style="margin-top: 0.5rem; margin-left: 1.5rem">
+          <li>
+            This application is now optimized exclusively for Android native
+            apps
+          </li>
+          <li>Web-based push notifications are no longer supported</li>
+          <li>Ensure proper FCM token refresh handling in your Android app</li>
+          <li>Test notifications thoroughly before production deployment</li>
+        </ul>
+      </div>
+
+      <a href="{% url 'index' %}" class="back-link">← Back to Dashboard</a>
+    </div>
+  </body>
+</html>

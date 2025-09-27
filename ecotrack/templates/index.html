@@ -12,6 +12,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <link rel="stylesheet" href="{% static 'android_notifications.css' %}" />
     <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
     <link
       rel="apple-touch-icon"
@@ -239,58 +240,42 @@
           </button>
         </div>
 
-        <!-- Notification Settings -->
+        <!-- Android Notification Management -->
         <div class="card">
-          <h2 class="card-title">Push Notifications</h2>
-          <div class="notification-settings">
-            <div class="setting-item">
-              <label for="notification-toggle" class="setting-label">
-                <span>Enable Daily Reminders</span>
-                <div class="toggle-switch">
-                  <input type="checkbox" id="notification-toggle" />
-                  <span class="toggle-slider"></span>
-                </div>
-              </label>
+          <h2 class="card-title">📱 Android Push Notifications</h2>
+          <div class="notification-settings android-notification-section">
+            <!-- Android notification management will be loaded here by JavaScript -->
+            <p class="text-muted" style="margin: 0 0 8px 0; color: #6b7280; font-size: 0.95rem;">
+              Use the toggle and time selector below to manage daily notifications from your Android app.
+            </p>
+            <div
+              id="android-devices-container"
+              class="android-devices-container"
+            >
+              <!-- This will be populated by android_notifications.js -->
             </div>
 
-            <div class="setting-item" id="time-setting" style="display: none">
-              <label for="notification-time" class="setting-label">
-                <span>Reminder Time</span>
-                <input
-                  type="time"
-                  id="notification-time"
-                  class="time-input"
-                  value="09:00"
-                />
-              </label>
-            </div>
-
-            <div class="notification-actions">
-              <button
-                id="request-permission-btn"
-                class="btn btn-primary"
-                style="display: none"
+            <!-- Guide link for developers -->
+            <div
+              class="android-guide-link"
+              style="
+                margin-top: 20px;
+                padding: 16px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                text-align: center;
+              "
+            >
+              <p style="margin: 0 0 8px 0; color: #6b7280">
+                Need help integrating with Android?
+              </p>
+              <a
+                href="{% url 'android_guide' %}"
+                target="_blank"
+                class="btn btn-primary btn-sm"
               >
-                Enable Notifications
-              </button>
-              <button
-                id="test-notification-btn"
-                class="btn btn-secondary"
-                style="display: none"
-              >
-                Send Test Notification
-              </button>
-              <button
-                id="save-notification-settings"
-                class="btn btn-primary"
-                style="display: none"
-              >
-                Save Settings
-              </button>
-            </div>
-
-            <div id="notification-status" class="notification-status">
-              <p class="status-text">Loading notification settings...</p>
+                📖 View Android Integration Guide
+              </a>
             </div>
           </div>
         </div>
@@ -630,8 +615,9 @@
     </div>
     <script src="{% static 'app.js' %}"></script>
     <script src="{% static 'api.js' %}"></script>
-    <script src="{% static 'script.js' %}"></script>
-    <script type="module" src="{% static 'notifications_fcm.js' %}"></script>
+  <script src="{% static 'script.js' %}"></script>
+  <script src="{% static 'android_notifications.js' %}"></script>
+  <script src="{% static 'push_settings.js' %}"></script>
     <script src="{% static 'communities.js' %}"></script>
     <script>
       document.addEventListener("click", function (e) {
