@@ -458,18 +458,18 @@ def cron_dispatch(request):
                 Give the message a human touch, with some warmth, inviting gesture and showing that you care for the user.
             """
 
-    try:
-        response = client.models.generate_content(
+    if tokens:
+        try:
+            response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
         ).text
-    except:
-        response = f"Hey user!, time to track your footprints 🌱"
+        except:
+            response = f"Hey user!, time to track your footprints 🌱"
 
-    title = 'EcoTrack Reminder'
-    body = response
-
-    if tokens:
+        title = 'EcoTrack Reminder'
+        body = response
+        
         # Send per token to avoid environments where FCM batch (/batch) is blocked or returns 404
         for t in tokens:
             ok = FCMService.send_notification(t, title, body, data={'type': 'daily_reminder'})
