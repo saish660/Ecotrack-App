@@ -29,7 +29,7 @@ class AndroidNotificationManager {
     console.log("Android NotificationManager initializing...");
     console.log("Detected Android environment:", this.isAndroidApp);
     this.initializeElements();
-    await this.loadDevicesFromServer();
+    // Removed device list loading; legacy device management UI has been deprecated
     this.setupEventListeners();
     this.updateUIForAndroid();
   }
@@ -41,60 +41,13 @@ class AndroidNotificationManager {
     this.refreshBtn = document.getElementById("refresh-devices-btn");
     this.addDeviceBtn = document.getElementById("add-device-btn");
 
-    // Create device list container if it doesn't exist
-    if (!this.deviceList) {
-      this.createDeviceListContainer();
-    }
+    // Legacy device list container creation removed
   }
 
-  attachDeviceEventListeners() {
-    // Test notification buttons
-    document.querySelectorAll(".test-device-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const deviceId = e.target.getAttribute("data-device");
-        this.testNotification(deviceId);
-      });
-    });
-
-    // Remove device buttons
-    document.querySelectorAll(".remove-device-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const deviceId = e.target.getAttribute("data-device");
-        this.removeDevice(deviceId);
-      });
-    });
-
-    // Preference checkboxes
-    document.querySelectorAll("input[data-pref]").forEach((checkbox) => {
-      checkbox.addEventListener("change", (e) => {
-        const deviceId = e.target.getAttribute("data-device");
-        const preference = e.target.getAttribute("data-pref");
-        const enabled = e.target.checked;
-        this.updateDevicePreference(deviceId, preference, enabled);
-      });
-    });
-
-    // Settings buttons
-    document.querySelectorAll(".settings-device-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const deviceId = e.target.getAttribute("data-device");
-        this.showDeviceSettingsModal(deviceId);
-      });
-    });
-  }
+  // Removed legacy device event listeners; preferences can still be updated via updateDevicePreference/updateDeviceSettings
 
   setupEventListeners() {
-    if (this.refreshBtn) {
-      this.refreshBtn.addEventListener("click", () => {
-        this.loadDevicesFromServer();
-      });
-    }
-
-    if (this.addDeviceBtn) {
-      this.addDeviceBtn.addEventListener("click", () => {
-        this.showAddDeviceModal();
-      });
-    }
+    // No-op: legacy refresh/add device controls removed
   }
 
   async updateDevicePreference(deviceId, preference, enabled) {
@@ -156,7 +109,7 @@ class AndroidNotificationManager {
 
       if (data.status === "success") {
         this.showStatus(`✅ Device settings updated successfully`, "success");
-        await this.loadDevicesFromServer();
+        // Removed device list reload
       } else {
         this.showStatus(
           `❌ Failed to update settings: ${data.message}`,

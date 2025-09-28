@@ -96,7 +96,10 @@ class CommunityManager {
 
   async loadUserCommunities() {
     try {
-      const response = await fetch("/api/communities/my-communities");
+      const response = await fetch(
+        `/api/communities/my-communities?t=${Date.now()}`,
+        { cache: "no-store" }
+      );
       const data = await response.json();
 
       const loadingElement = document.getElementById("communities-loading");
@@ -109,6 +112,8 @@ class CommunityManager {
         const communities = data.data;
 
         if (communities.length === 0) {
+          // Clear any stale items and show empty state
+          if (listElement) listElement.innerHTML = "";
           emptyElement?.classList.remove("hidden");
         } else {
           emptyElement?.classList.add("hidden");
@@ -185,7 +190,9 @@ class CommunityManager {
 
   async loadPublicCommunities() {
     try {
-      const response = await fetch("/api/communities/public");
+      const response = await fetch(`/api/communities/public?t=${Date.now()}`, {
+        cache: "no-store",
+      });
       const data = await response.json();
 
       if (data.status === "success") {
@@ -609,7 +616,7 @@ class CommunityManager {
   async leaveCommunity() {
     if (!this.currentCommunity) return;
 
-    const confirmed = confirm(
+    const confirmed = await this.confirmDialog(
       `Are you sure you want to leave ${this.currentCommunity.name}?`
     );
     if (!confirmed) return;
@@ -631,7 +638,9 @@ class CommunityManager {
       if (data.status === "success") {
         this.showMessage(data.message, "success");
         this.closeCommunityChat();
-        this.loadUserCommunities();
+        // Refresh both lists so UI reflects that user is no longer a member
+        await this.loadUserCommunities();
+        await this.loadPublicCommunities();
       } else {
         this.showMessage(data.message || "Failed to leave community", "error");
       }
@@ -639,6 +648,69 @@ class CommunityManager {
       console.error("Error leaving community:", error);
       this.showMessage("Failed to leave community", "error");
     }
+  }
+
+  // Confirmation dialog helper (returns Promise<boolean>)
+  confirmDialog(message) {
+    return new Promise((resolve) => {
+      this.#ensureModalStyles();
+      let box = document.getElementById("custom-confirm-box");
+      let text = document.getElementById("confirm-box-text");
+      let okBtn = document.getElementById("confirm-box-ok");
+      let cancelBtn = document.getElementById("confirm-box-cancel");
+
+      if (!box) {
+        box = document.createElement("div");
+        box.id = "custom-confirm-box";
+        box.className = "custom-confirm-box";
+        box.innerHTML = `
+          <div class="confirm-box-content">
+            <div id="confirm-box-text" class="confirm-box-text"></div>
+            <div class="confirm-box-actions">
+              <button id="confirm-box-cancel" class="btn btn-outline">Cancel</button>
+              <button id="confirm-box-ok" class="btn btn-primary">OK</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(box);
+        text = box.querySelector("#confirm-box-text");
+        okBtn = box.querySelector("#confirm-box-ok");
+        cancelBtn = box.querySelector("#confirm-box-cancel");
+      }
+
+      const cleanup = () => {
+        document.removeEventListener("keydown", onKeydown);
+        box.classList.add("hidden");
+      };
+
+      const onKeydown = (e) => {
+        if (e.key === "Escape") {
+          cleanup();
+          resolve(false);
+        }
+      };
+
+      text.textContent = message;
+      box.classList.remove("hidden");
+      document.addEventListener("keydown", onKeydown);
+
+      okBtn?.addEventListener(
+        "click",
+        () => {
+          cleanup();
+          resolve(true);
+        },
+        { once: true }
+      );
+      cancelBtn?.addEventListener(
+        "click",
+        () => {
+          cleanup();
+          resolve(false);
+        },
+        { once: true }
+      );
+    });
   }
 
   // Utility methods
@@ -726,12 +798,61 @@ class CommunityManager {
 
   showMessage(message, type = "info") {
     // Use existing message system if available
-    if (window.app && window.app.showMessageBox) {
-      window.app.showMessageBox(message);
+    if (window.app && typeof window.app.showMessage === "function") {
+      window.app.showMessage(message, type);
     } else {
       console.log(`${type.toUpperCase()}: ${message}`);
-      alert(message); // Fallback
+      // Fallback to custom inline message modal
+      this.#ensureModalStyles();
+      this.#showInlineMessage(message, type);
     }
+  }
+
+  // Create a simple inline message modal if global app message is unavailable
+  #showInlineMessage(message, type = "info") {
+    this.#ensureModalStyles();
+    let box = document.getElementById("custom-message-box");
+    let text = document.getElementById("message-box-text");
+    let okBtn = document.getElementById("message-box-ok");
+
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "custom-message-box";
+      box.className = "custom-message-box";
+      box.innerHTML = `
+        <div class="message-box-content">
+          <div id="message-box-text" class="message-box-text"></div>
+          <button id="message-box-ok" class="btn btn-primary">OK</button>
+        </div>
+      `;
+      document.body.appendChild(box);
+      text = box.querySelector("#message-box-text");
+      okBtn = box.querySelector("#message-box-ok");
+      okBtn?.addEventListener("click", () => box.classList.add("hidden"));
+    }
+
+    text.textContent = message;
+    box.classList.remove("hidden");
+    // Optional: auto-hide for non-error types
+    if (type !== "error") {
+      setTimeout(() => {
+        if (!box.classList.contains("hidden")) box.classList.add("hidden");
+      }, 3000);
+    }
+  }
+
+  #ensureModalStyles() {
+    if (document.getElementById("custom-modal-styles")) return;
+    const style = document.createElement("style");
+    style.id = "custom-modal-styles";
+    style.textContent = `
+      .hidden { display: none !important; }
+      .custom-message-box, .custom-confirm-box { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+      .message-box-content, .confirm-box-content { background: #fff; color: #111; border-radius: 10px; padding: 16px 20px; width: min(420px, calc(100% - 32px)); box-shadow: 0 12px 28px rgba(0,0,0,0.25); }
+      .confirm-box-text, .message-box-text { margin-bottom: 12px; }
+      .confirm-box-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    `;
+    document.head.appendChild(style);
   }
 }
 

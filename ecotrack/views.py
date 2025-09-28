@@ -1084,11 +1084,11 @@ def create_community(request):
             is_private=is_private
         )
         
-        # Auto-join creator as admin
+        # Auto-join creator as a regular member (no special admin role)
         CommunityMembership.objects.create(
             community=community,
             user=request.user,
-            role='admin'
+            role='member'
         )
         
         return JsonResponse({
@@ -1429,20 +1429,6 @@ def leave_community(request):
             }, status=400)
             
         community = membership.community
-        
-        # Check if user is the creator and only admin
-        if community.creator == request.user:
-            admin_count = CommunityMembership.objects.filter(
-                community=community,
-                role='admin',
-                is_active=True
-            ).count()
-            
-            if admin_count <= 1:
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'As the creator, you must assign another admin before leaving'
-                }, status=400)
         
         # Leave community
         membership.is_active = False
