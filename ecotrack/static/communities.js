@@ -151,19 +151,7 @@ class CommunityManager {
                             : ""
                         }
                     </div>
-                    <div class="community-join-code">
-                        <label>Join Code:</label>
-                        <div class="join-code-row">
-                            <span class="join-code-value" title="Click to copy" onclick="communityManager.copyJoinCode('${
-                              community.join_code
-                            }')">${community.join_code}</span>
-                            <button class="btn btn-outline btn-xs copy-code-btn" onclick="communityManager.copyJoinCode('${
-                              community.join_code
-                            }')">
-                                Copy
-                            </button>
-                        </div>
-                    </div>
+                
                 </div>
                 <div class="community-actions">
                     <button class="btn btn-primary btn-sm" onclick="communityManager.openCommunityChat(${
