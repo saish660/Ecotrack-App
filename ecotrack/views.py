@@ -19,6 +19,7 @@ from django.utils import timezone
 from .firebase_service import FCMService
 import pytz
 import logging
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +138,7 @@ def login_view(request):
                 'redirect_url': reverse('index')  # Redirect to the main page on success
             })
         else:
-            return JsonResponse({'status': 'error', 'message': 'Invalid email or password'}, status=401)
+            return JsonResponse({'status': 'error', 'message': 'Invalid email or password'})
 
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON data'}, status=400)
@@ -404,7 +405,6 @@ def cron_dispatch(request):
         return JsonResponse({'status': 'error', 'message': 'Unauthorized'}, status=401)
 
     # Use Django timezone utilities so we honor settings.TIME_ZONE
-    from django.utils import timezone
     now = timezone.localtime(timezone.now())
     current_time = time(hour=now.hour, minute=now.minute)
     today = now.date()
