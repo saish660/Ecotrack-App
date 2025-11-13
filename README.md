@@ -1,28 +1,27 @@
-EcoTrack App
-====================
+# EcoTrack App
 
 ## Android app
-Download the Android app using this Google Drive link: 
+
+Download the Android app using this Google Drive link:
 
 [EcoTrack.apk](https://drive.google.com/file/d/1uIUgvnXMGl8LPZDOL1cv2e0vcn6fQNv7/view?usp=sharing)
 
-
 ## Setting up the WebApp locally
-#### _The webapp version doesn't support notifications and is designed for mobile screens._
+
+#### _The webapp version doesn't support notifications and is designed for mobile screens only._
 
 _EcoTrack is best used as a mobile app_
 
+## Prerequisites
 
-Prerequisites
--------------
 - Python 3.10+ & pip
 
+## Installation
 
-Installation
-------------
 1. Install dependencies: `pip install -r requirements.txt`
 
-2. Create and apply database migrations: 
+2. Create and apply database migrations:
+
    - `python manage.py makemigrations`
    - `python manage.py migrate`
 
@@ -36,12 +35,11 @@ Installation
 AI features and notifications will not work without the required keys.
 ```
 
+## Next Steps
 
-Next Steps
-----------
 - Visit `http://127.0.0.1:8000/` to verify the app loads.
 
-Completing the setup
-----------
+## Completing the setup
+
 - Keep environment variables (Firebase, web push keys, etc.) in a `.env` file and update `DjangoProject/settings.py` to load them if needed.
 - For push notifications, ensure the Firebase credential JSON and VAPID keys in `DjangoProject/` are correctly configured.
