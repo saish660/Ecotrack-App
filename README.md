@@ -43,3 +43,4 @@ AI features and notifications will not work without the required keys.
 
 - Keep environment variables (Firebase, web push keys, etc.) in a `.env` file and update `DjangoProject/settings.py` to load them if needed.
 - For push notifications, ensure the Firebase credential JSON and VAPID keys in `DjangoProject/` are correctly configured.
+- A cron job should ping the cron url every 1 minute to trigger push notifications.
