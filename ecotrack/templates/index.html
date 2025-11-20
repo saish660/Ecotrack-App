@@ -77,6 +77,15 @@
                 ></circle>
               </svg>
               <span id="sustainability-score">0</span>
+              <button
+                id="survey-cta-button"
+                class="btn btn-primary hidden"
+                type="button"
+                style="margin-top: 1rem"
+                onclick="window.location.href='/survey'"
+              >
+                Submit Survey
+              </button>
             </div>
             <p class="score-label">Sustainability Score</p>
           </div>
@@ -131,6 +140,37 @@
               "
             >
               <div id="ecosystem3d" style="width: 100%; height: 300px"></div>
+            </div>
+            <div
+              id="ecosystem-placeholder"
+              class="hidden"
+              style="
+                width: 100%;
+                min-height: 180px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 0.75rem;
+                background: #f1f5f9;
+                border-radius: 1rem;
+                padding: 1.5rem;
+                text-align: center;
+                margin-bottom: 1rem;
+              "
+            >
+              <p style="margin: 0; color: var(--text-color-secondary)">
+                Submit the onboarding survey to unlock your personalized
+                ecosystem visualization.
+              </p>
+              <button
+                id="ecosystem-survey-btn"
+                class="btn btn-primary"
+                type="button"
+                onclick="window.location.href='/survey'"
+              >
+                Go to Survey
+              </button>
             </div>
             <p
               style="

@@ -26,7 +26,7 @@ class EcoTrackAPI {
         "Content-Type": "application/json",
         "X-CSRFToken": getCsrfToken(),
       },
-      body: {},
+      body: JSON.stringify({}),
     })
       .then((response) => {
         if (!response.ok) {
@@ -59,6 +59,9 @@ class EcoTrackAPI {
       habits: userdata["data"]["habits"],
       achievements: userdata["data"]["achievements"],
       last_8_footprints: userdata["data"]["last_8_footprints"],
+      requires_survey: userdata["data"]["requires_survey"],
+      survey_prompt: userdata["data"]["survey_prompt"],
+      survey_skipped: userdata["data"]["survey_skipped"],
     };
   }
 }

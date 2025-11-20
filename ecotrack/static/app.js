@@ -2,6 +2,7 @@
 class EcoTrackApp {
   constructor() {
     this.api = new EcoTrackAPI();
+    this.requiresSurvey = false;
     this.initializeApp();
   }
 
@@ -101,25 +102,61 @@ class EcoTrackApp {
         carbon_footprint: 150,
         habits_completed_today: 0,
         streak_count: 0,
+        requires_survey: false,
+        survey_prompt: "submit survey",
       });
     }
   }
 
   updateDashboardUI(data) {
+    const requiresSurvey = Boolean(data.requires_survey);
+    const surveyPrompt = data.survey_prompt || "submit survey";
+    this.requiresSurvey = requiresSurvey;
+
     // Update sustainability score
     const scoreElement = document.getElementById("sustainability-score");
     const scoreCircle = document.getElementById("score-circle");
-    if (scoreElement && scoreCircle) {
-      scoreElement.textContent = data.sustainability_score;
+    const scoreCircleSvg = document.querySelector(
+      ".score-circle-container svg"
+    );
+    const surveyButton = document.getElementById("survey-cta-button");
+
+    if (scoreElement) {
+      if (requiresSurvey) {
+        scoreElement.classList.add("hidden");
+      } else {
+        scoreElement.classList.remove("hidden");
+        scoreElement.textContent = data.sustainability_score;
+      }
+    }
+
+    if (surveyButton) {
+      surveyButton.classList.toggle("hidden", !requiresSurvey);
+    }
+
+    if (scoreCircleSvg) {
+      scoreCircleSvg.style.display = requiresSurvey ? "none" : "";
+    }
+
+    if (scoreCircle) {
       const circumference = 2 * Math.PI * 45;
-      scoreCircle.style.strokeDashoffset =
-        circumference - (data.sustainability_score / 100) * circumference;
+      const numericScore = Number(data.sustainability_score) || 0;
+      scoreCircle.style.strokeDashoffset = requiresSurvey
+        ? circumference
+        : circumference - (numericScore / 100) * circumference;
     }
 
     // Update carbon footprint
     const carbonElement = document.getElementById("carbon-footprint");
     if (carbonElement) {
-      carbonElement.textContent = `${data.carbon_footprint.toFixed(1)}`;
+      if (requiresSurvey) {
+        carbonElement.textContent = "-";
+      } else {
+        const carbonValue = Number(data.carbon_footprint);
+        carbonElement.textContent = Number.isFinite(carbonValue)
+          ? `${carbonValue.toFixed(1)}`
+          : "-";
+      }
     }
 
     // Update habits completed
@@ -268,7 +305,24 @@ class EcoTrackApp {
     ctx.clearRect(0, 0, width, height);
 
     const data = await this.api.getDashboardData();
-    let graphData = data.last_8_footprints;
+    if (
+      data.requires_survey ||
+      !Array.isArray(data.last_8_footprints) ||
+      data.last_8_footprints.length < 8
+    ) {
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "16px 'Inter', sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(
+        `${data.survey_prompt || "submit survey"} to view footprint trends`,
+        width / 2,
+        height / 2
+      );
+      return;
+    }
+
+    let graphData = data.last_8_footprints.map((value) => Number(value) || 0);
     const lastMonthData = graphData.slice(0, 4);
     const thisMonthData = graphData.slice(4, 8);
 
@@ -671,7 +725,25 @@ class EcoTrackApp {
 
   initializeEcosystem3D() {
     const container = document.getElementById("ecosystem3d");
-    if (!container) return;
+    const vizWrapper = document.getElementById(
+      "ecosystem-visualization-container"
+    );
+    const placeholder = document.getElementById("ecosystem-placeholder");
+    if (!container || !vizWrapper) return;
+
+    if (this.requiresSurvey) {
+      container.innerHTML = "";
+      vizWrapper.classList.add("hidden");
+      if (placeholder) {
+        placeholder.classList.remove("hidden");
+      }
+      return;
+    }
+
+    vizWrapper.classList.remove("hidden");
+    if (placeholder) {
+      placeholder.classList.add("hidden");
+    }
     container.innerHTML = "";
     const width = container.offsetWidth || 400;
     const height = container.offsetHeight || 300;

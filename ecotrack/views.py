@@ -157,25 +157,48 @@ def survey(request):
     if request.method == 'POST':
         user = request.user
         data = json.loads(request.body)
+        if data.get('skip'):
+            user.user_data = {}
+            user.survey_answered = True
+            user.survey_skipped = True
+            user.carbon_footprint = []
+            user.sustainability_score = 0
+            user.last_8_footprint_measurements = []
+            user.save(update_fields=[
+                'user_data',
+                'survey_answered',
+                'survey_skipped',
+                'carbon_footprint',
+                'sustainability_score',
+                'last_8_footprint_measurements',
+            ])
+            return JsonResponse({'status': 'success', 'message': 'Survey skipped successfully'}, status=200)
+
         user.user_data = data
         user.survey_answered = True
-        user.carbon_footprint = calculate_personal_carbon_footprint(data)['summary']['personal_monthly_co2e_kg']
+        user.survey_skipped = False
+        footprint_value = calculate_personal_carbon_footprint(data)['summary']['personal_monthly_co2e_kg']
+        user.carbon_footprint = footprint_value
         user.sustainability_score = calculate_initial_sustainability_score(user.user_data)[
             'initial_sustainability_score']
-        user.last_8_footprint_measurements = update_latest_values(user, calculate_personal_carbon_footprint(data)['summary']['personal_monthly_co2e_kg'])
+        user.last_8_footprint_measurements = update_latest_values(user, footprint_value)
         user.save()
         return JsonResponse({'status': 'success', 'message': 'Survey submitted successfully'}, status=200)
 
-    if request.user.survey_answered:
+    if request.user.survey_answered and not request.user.survey_skipped:
         return HttpResponseRedirect(reverse('index'))
     return render(request, "survey_form.html")
 
 
 @login_required
 def get_user_data(request):
-    if request.user.last_checkin < datetime.now().date():
+    today = datetime.now().date()
+    if not request.user.last_checkin or request.user.last_checkin < today:
         request.user.habits_today = 0
         request.user.save()
+
+    requires_survey = (not request.user.survey_answered) or request.user.survey_skipped
+    survey_prompt = "submit survey"
 
     return JsonResponse({'status': 'success', 'data': {
         "username": request.user.username,
@@ -187,6 +210,9 @@ def get_user_data(request):
         "habits_today": request.user.habits_today,
         "achievements": request.user.achievements,
         "last_8_footprints": request.user.last_8_footprint_measurements,
+        "requires_survey": requires_survey,
+        "survey_prompt": survey_prompt,
+        "survey_skipped": request.user.survey_skipped,
     }})
 
 

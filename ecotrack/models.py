@@ -17,6 +17,7 @@ class User(AbstractUser):
     habits = models.JSONField(default=list, blank=True)
     user_data = models.JSONField(default=get_default_dict, blank=True)
     survey_answered = models.BooleanField(default=False)
+    survey_skipped = models.BooleanField(default=False)
     achievements = models.JSONField(default=list, blank=True)
     last_checkin = models.DateField(null=True, blank=True, default=datetime.now() - timedelta(days=1))
     habits_today = models.PositiveIntegerField(default=0)

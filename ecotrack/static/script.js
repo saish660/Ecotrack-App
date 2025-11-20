@@ -29,6 +29,8 @@ document.addEventListener("DOMContentLoaded", () => {
     carbon_footprint: 0,
     sustainability_score: 0,
     habits: [],
+    requires_survey: false,
+    survey_prompt: "submit survey",
   };
   let achievements = [];
   let lastQuestionnaireSubmissionDate = null;
@@ -74,6 +76,9 @@ document.addEventListener("DOMContentLoaded", () => {
         streak: data.data.streak || 0,
         carbon_footprint: data.data.carbon_footprint || 0,
         sustainability_score: data.data.sustainability_score || 0,
+        requires_survey: data.data.requires_survey,
+        survey_prompt: data.data.survey_prompt,
+        survey_skipped: data.data.survey_skipped,
         habits: habits,
         habits_today: data.data.habits_today || 0,
       };
@@ -356,11 +361,37 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   // --- Utility Functions ---
   function updateDashboardUI() {
+    const requiresSurvey = Boolean(userData.requires_survey);
+    const surveyPrompt = userData.survey_prompt || "submit survey";
+
+    const scoreCircleSvg = document.querySelector(
+      ".score-circle-container svg"
+    );
+    const surveyButton = document.getElementById("survey-cta-button");
+
+    if (surveyButton) {
+      surveyButton.classList.toggle("hidden", !requiresSurvey);
+    }
+
+    if (scoreCircleSvg) {
+      scoreCircleSvg.style.display = requiresSurvey ? "none" : "";
+    }
+
     if (sustainabilityScoreElement) {
-      sustainabilityScoreElement.textContent = userData.sustainability_score;
+      sustainabilityScoreElement.classList.toggle("hidden", requiresSurvey);
+      if (!requiresSurvey) {
+        sustainabilityScoreElement.textContent = userData.sustainability_score;
+      }
     }
     if (carbonFootprintElement) {
-      carbonFootprintElement.textContent = userData.carbon_footprint.toFixed(1);
+      const carbonValue = Number(userData.carbon_footprint);
+      if (requiresSurvey) {
+        carbonFootprintElement.textContent = "-";
+      } else if (Number.isFinite(carbonValue)) {
+        carbonFootprintElement.textContent = carbonValue.toFixed(1);
+      } else {
+        carbonFootprintElement.textContent = "-";
+      }
     }
 
     if (habitsTodayElement) {
@@ -370,8 +401,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (scoreCircle) {
       const circumference = 2 * Math.PI * 45; // radius of circle = 45
       scoreCircle.style.strokeDasharray = circumference;
-      scoreCircle.style.strokeDashoffset =
-        circumference - (userData.sustainability_score / 100) * circumference;
+      scoreCircle.style.strokeDashoffset = requiresSurvey
+        ? circumference
+        : circumference -
+          (userData.sustainability_score / 100) * circumference;
     }
 
     // Update streak if element exists

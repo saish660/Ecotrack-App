@@ -723,13 +723,23 @@
                     </div>
                 </div>
                 <!-- Existing questions (if any) can follow here -->
-                <button
-                        type="submit"
-                        class="btn btn-primary"
-                        style="margin-top: 1rem"
-                >
-                    Submit Survey
-                </button>
+                <div class="survey-actions">
+                    <button
+                            type="submit"
+                            class="btn btn-primary"
+                            style="margin-top: 1rem"
+                    >
+                        Submit Survey
+                    </button>
+                    <button
+                            type="button"
+                            id="skip-survey-btn"
+                            class="btn btn-outline"
+                            style="margin-top: 1rem"
+                    >
+                        Skip for now
+                    </button>
+                </div>
             </form>
 
             <div id="survey-status-message" class="hidden">
@@ -1085,6 +1095,36 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         handleFormSubmit('survey-form', 'survey');
+        const skipBtn = document.getElementById('skip-survey-btn');
+        if (skipBtn) {
+            skipBtn.addEventListener('click', () => {
+                if (!confirm('Skip the survey? You can return anytime from the dashboard.')) {
+                    return;
+                }
+                fetch('survey', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken(),
+                    },
+                    body: JSON.stringify({ skip: true })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Network response was not ok (${response.status})`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Survey skipped:', data);
+                        window.location.href = '/';
+                    })
+                    .catch(error => {
+                        console.error('Error skipping survey:', error);
+                        alert('Failed to skip survey. Please try again.');
+                    });
+            });
+        }
     });
 
     function showStep(stepToShow) {
