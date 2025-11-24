@@ -66,6 +66,22 @@ def _normalize_footprint_entry(entry):
     }
 
 
+def _coerce_to_date(value):
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    return value
+
+
+def _streak_has_lapsed(last_checkin_date, today=None):
+    if today is None:
+        today = timezone.localdate()
+    if not last_checkin_date:
+        return False
+    return last_checkin_date < (today - timedelta(days=1))
+
+
 def get_carbon_footprint_history(user):
     raw_history = user.last_8_footprint_measurements or []
     normalized_history = [
@@ -283,10 +299,21 @@ def survey(request):
 
 @login_required
 def get_user_data(request):
-    today = datetime.now().date()
-    if not request.user.last_checkin or request.user.last_checkin < today:
-        request.user.habits_today = 0
-        request.user.save()
+    today = timezone.localdate()
+    last_checkin_date = _coerce_to_date(request.user.last_checkin)
+    fields_to_update = []
+
+    if _streak_has_lapsed(last_checkin_date, today) and request.user.streak != 0:
+        request.user.streak = 0
+        fields_to_update.append('streak')
+
+    if not last_checkin_date or last_checkin_date < today:
+        if request.user.habits_today != 0:
+            request.user.habits_today = 0
+            fields_to_update.append('habits_today')
+
+    if fields_to_update:
+        request.user.save(update_fields=fields_to_update)
 
     requires_survey = (not request.user.survey_answered) or request.user.survey_skipped
     survey_prompt = "submit survey"
@@ -447,12 +474,17 @@ def submit_questionnaire(request):
     else:
         request.user.sustainability_score += 1
 
-    if request.user.last_checkin < (datetime.now() - timedelta(days=1)).date():
+    today = timezone.localdate()
+    last_checkin_date = _coerce_to_date(request.user.last_checkin)
+
+    if last_checkin_date == today:
+        pass  # duplicate submission in one day shouldn't change streak
+    elif _streak_has_lapsed(last_checkin_date, today) or not last_checkin_date:
         request.user.streak = 1
     else:
         request.user.streak += 1
 
-    request.user.last_checkin = datetime.now()
+    request.user.last_checkin = timezone.now()
     request.user.days_since_last_survey += 1
     request.user.habits_today = score
     request.user.achievements += check_achievements(request.user)
