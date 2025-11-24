@@ -137,37 +137,45 @@ class CommunityManager {
     communities.forEach((community) => {
       const communityElement = document.createElement("div");
       communityElement.className = "community-item";
+
+      const badges = [];
+      if (community.is_creator) {
+        badges.push('<span class="creator-badge">Creator</span>');
+      }
+      if (community.role) {
+        badges.push(
+          `<span class="meta-pill role-pill">${this.escapeHtml(
+            community.role
+          )}</span>`
+        );
+      }
+
       communityElement.innerHTML = `
-                <div class="community-info">
-                    <h4 class="community-name">${this.escapeHtml(
-                      community.name
-                    )}</h4>
-                    <p class="community-description">${this.escapeHtml(
-                      community.description || "No description"
-                    )}</p>
-                    <div class="community-meta">
-                        <span class="member-count">${
-                          community.member_count
-                        } members</span>
-                        <span class="user-role">${community.role}</span>
-                        ${
-                          community.is_creator
-                            ? '<span class="creator-badge">Creator</span>'
-                            : ""
-                        }
-                    </div>
-                
-                </div>
-                <div class="community-actions">
-                    <button class="btn btn-primary btn-sm" onclick="communityManager.openCommunityChat(${
-                      community.id
-                    }, '${this.escapeHtml(community.name)}', ${
+        <div class="community-card-header">
+          <div>
+            <h4 class="community-name">${this.escapeHtml(community.name)}</h4>
+            <p class="community-description">${this.escapeHtml(
+              community.description || "No description"
+            )}</p>
+          </div>
+          <div class="community-badges">${badges.join(" ")}</div>
+        </div>
+        <div class="community-meta-tags">
+          <span class="meta-pill">${community.member_count} members</span>
+        </div>
+        <div class="community-card-footer">
+          <div class="community-actions">
+            <button class="btn btn-primary btn-sm" onclick="communityManager.openCommunityChat(${
+              community.id
+            }, '${this.escapeHtml(community.name)}', ${
         community.member_count
       })">
-                        Open Chat
-                    </button>
-                </div>
-            `;
+              Open Chat
+            </button>
+          </div>
+        </div>
+      `;
+
       container.appendChild(communityElement);
     });
   }
@@ -176,15 +184,22 @@ class CommunityManager {
     const publicCard = document.getElementById("public-communities-card");
     const browseBtn = document.getElementById("browse-communities-btn");
 
+    const browseLabel =
+      browseBtn?.querySelector(".icon-circle + span") || browseBtn;
+
     if (publicCard.classList.contains("hidden")) {
       // Show public communities
       await this.loadPublicCommunities();
       publicCard.classList.remove("hidden");
-      browseBtn.textContent = "Hide Public Communities";
+      if (browseLabel) {
+        browseLabel.textContent = "Hide";
+      }
     } else {
       // Hide public communities
       publicCard.classList.add("hidden");
-      browseBtn.textContent = "Browse Public Communities";
+      if (browseLabel) {
+        browseLabel.textContent = "Browse";
+      }
     }
   }
 
@@ -224,31 +239,37 @@ class CommunityManager {
     communities.forEach((community) => {
       const communityElement = document.createElement("div");
       communityElement.className = "community-item";
+      const createdDate = community.created_at
+        ? new Date(community.created_at).toLocaleDateString()
+        : "Recently created";
+
       communityElement.innerHTML = `
-                <div class="community-info">
-                    <h4 class="community-name">${this.escapeHtml(
-                      community.name
-                    )}</h4>
-                    <p class="community-description">${this.escapeHtml(
-                      community.description || "No description"
-                    )}</p>
-                    <div class="community-meta">
-                        <span class="member-count">${
-                          community.member_count
-                        } members</span>
-                        <span class="created-date">Created ${new Date(
-                          community.created_at
-                        ).toLocaleDateString()}</span>
-                    </div>
-                </div>
-                <div class="community-actions">
-                    <button class="btn btn-primary btn-sm" onclick="communityManager.joinPublicCommunity(${
-                      community.id
-                    })">
-                        Join Community
-                    </button>
-                </div>
-            `;
+        <div class="community-card-header">
+          <div>
+            <h4 class="community-name">${this.escapeHtml(community.name)}</h4>
+            <p class="community-description">${this.escapeHtml(
+              community.description || "No description"
+            )}</p>
+          </div>
+          <div class="community-badges">
+            <span class="meta-pill">Public</span>
+          </div>
+        </div>
+        <div class="community-meta-tags">
+          <span class="meta-pill">${community.member_count} members</span>
+          <span class="meta-pill">Created ${createdDate}</span>
+        </div>
+        <div class="community-card-footer">
+          <div class="community-actions">
+            <button class="btn btn-primary btn-sm" onclick="communityManager.joinPublicCommunity(${
+              community.id
+            })">
+              Join Community
+            </button>
+          </div>
+        </div>
+      `;
+
       container.appendChild(communityElement);
     });
   }
@@ -449,7 +470,11 @@ class CommunityManager {
           messagesContainer.innerHTML = "";
         }
 
-        data.data.messages.forEach((message) => {
+        const orderedMessages = [...data.data.messages].sort(
+          (a, b) => new Date(a.created_at) - new Date(b.created_at)
+        );
+
+        orderedMessages.forEach((message) => {
           this.renderMessage(message, messagesContainer);
         });
 

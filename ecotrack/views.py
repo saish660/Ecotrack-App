@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time, date
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseRedirect
@@ -24,17 +24,108 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
+def _safe_float(value, default=None):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
 
-def update_latest_values(user, new_value):
-    if not user.last_8_footprint_measurements:
-        return [new_value] * 8
-    global_data_list = user.last_8_footprint_measurements
-    if len(global_data_list) >= 8:
-        global_data_list.pop(0) # Removes the element at index 0
 
-    global_data_list.append(new_value)
+def _shift_month(date_obj: date, offset: int) -> date:
+    month = date_obj.month - 1 + offset
+    year = date_obj.year + month // 12
+    month = month % 12 + 1
+    return date(year, month, 1)
 
-    return global_data_list
+
+def _normalize_footprint_entry(entry):
+    if isinstance(entry, dict):
+        value = entry.get("value")
+        recorded_at = entry.get("recorded_at")
+    else:
+        value = entry
+        recorded_at = None
+
+    normalized_value = round(_safe_float(value, 0.0) or 0.0, 2)
+
+    normalized_recorded_at = None
+    if recorded_at:
+        if isinstance(recorded_at, (datetime, date)):
+            normalized_recorded_at = recorded_at.isoformat()
+        else:
+            try:
+                normalized_recorded_at = (
+                    datetime.fromisoformat(str(recorded_at)).date().isoformat()
+                )
+            except ValueError:
+                normalized_recorded_at = None
+
+    return {
+        "value": normalized_value,
+        "recorded_at": normalized_recorded_at,
+    }
+
+
+def get_carbon_footprint_history(user):
+    raw_history = user.last_8_footprint_measurements or []
+    normalized_history = [
+        _normalize_footprint_entry(entry) for entry in raw_history if entry is not None
+    ]
+    normalized_history = normalized_history[-8:]
+
+    if normalized_history:
+        if len(normalized_history) == 1:
+            entry = normalized_history[0]
+            if entry.get("recorded_at"):
+                try:
+                    base_date = datetime.fromisoformat(entry["recorded_at"]).date()
+                except ValueError:
+                    base_date = timezone.localdate().replace(day=1)
+            else:
+                base_date = timezone.localdate().replace(day=1)
+            synthetic_month = _shift_month(base_date, -1)
+            normalized_history.insert(
+                0,
+                {
+                    "value": entry["value"],
+                    "recorded_at": synthetic_month.isoformat(),
+                },
+            )
+        return normalized_history
+
+    baseline = _safe_float(user.carbon_footprint, None)
+    if baseline is None or baseline <= 0:
+        return []
+
+    today = timezone.localdate().replace(day=1)
+    seed_months = 4
+    seeded_history = []
+    for offset in range(-(seed_months - 1), 1):
+        month_date = _shift_month(today, offset)
+        seeded_history.append(
+            {
+                "value": round(baseline, 2),
+                "recorded_at": month_date.isoformat(),
+            }
+        )
+
+    return seeded_history
+
+
+def update_latest_values(user, new_value, recorded_at=None):
+    history = [
+        _normalize_footprint_entry(entry)
+        for entry in (user.last_8_footprint_measurements or [])
+    ]
+    history.append(
+        _normalize_footprint_entry(
+            {
+                "value": new_value,
+                "recorded_at": recorded_at or timezone.localdate().isoformat(),
+            }
+        )
+    )
+    return history[-8:]
 
 @login_required
 def index(request):
@@ -209,7 +300,7 @@ def get_user_data(request):
         "last_checkin_date": request.user.last_checkin,
         "habits_today": request.user.habits_today,
         "achievements": request.user.achievements,
-        "last_8_footprints": request.user.last_8_footprint_measurements,
+        "last_8_footprints": get_carbon_footprint_history(request.user),
         "requires_survey": requires_survey,
         "survey_prompt": survey_prompt,
         "survey_skipped": request.user.survey_skipped,

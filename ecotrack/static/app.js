@@ -299,64 +299,102 @@ class EcoTrackApp {
     const canvas = document.getElementById("carbonGraph");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    const width = canvas.width;
-    const height = canvas.height;
+    const dpr = window.devicePixelRatio || 1;
+    const cssWidth = canvas.clientWidth || canvas.width || 400;
+    const cssHeight = canvas.clientHeight || canvas.height || 240;
 
+    const targetWidth = Math.round(cssWidth * dpr);
+    const targetHeight = Math.round(cssHeight * dpr);
+    if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+    }
+
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const width = cssWidth;
+    const height = cssHeight;
     ctx.clearRect(0, 0, width, height);
 
-    const data = await this.api.getDashboardData();
-    if (
-      data.requires_survey ||
-      !Array.isArray(data.last_8_footprints) ||
-      data.last_8_footprints.length < 8
-    ) {
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "16px 'Inter', sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(
-        `${data.survey_prompt || "submit survey"} to view footprint trends`,
-        width / 2,
-        height / 2
-      );
+    const exitWithMessage = (message) => {
+      this.drawCarbonGraphMessage(ctx, width, height, message);
+      ctx.restore();
+    };
+
+    let data;
+    try {
+      data = await this.api.getDashboardData();
+    } catch (error) {
+      console.error("Failed to load carbon graph data:", error);
+      exitWithMessage("Unable to load footprint data.");
       return;
     }
 
-    let graphData = data.last_8_footprints.map((value) => Number(value) || 0);
-    const lastMonthData = graphData.slice(0, 4);
-    const thisMonthData = graphData.slice(4, 8);
+    if (!data || data.requires_survey) {
+      const prompt = data?.survey_prompt || "Complete the survey";
+      exitWithMessage(`${prompt} to view footprint trends`);
+      return;
+    }
 
-    const nextMonthPrediction = thisMonthData.map((current, i) => {
-      const trend = current - lastMonthData[i];
-      const predicted = current + trend;
-      return Math.max(50, Math.min(1200, predicted));
-    });
-    const weeks = ["Week 1", "Week 2", "Week 3", "Week 4"];
+    const history = this.normalizeFootprintHistory(data.last_8_footprints);
+    if (history.length < 2) {
+      exitWithMessage("Need at least 2 months of data to forecast.");
+      return;
+    }
+
+    const actualValues = history.map((item) => item.value);
+    const trendValues = this.computeMovingAverage(actualValues, 3);
+    const forecastValue = this.computeForecast(actualValues);
+
+    const latestEntry = history[history.length - 1];
+    const baseDateSource = latestEntry?.date || new Date();
+    const baseDate = new Date(
+      baseDateSource.getFullYear(),
+      baseDateSource.getMonth(),
+      1
+    );
+    const forecastDate = new Date(
+      baseDate.getFullYear(),
+      baseDate.getMonth() + 1,
+      1
+    );
+    const monthFormatter = new Intl.DateTimeFormat("en", { month: "short" });
+    const forecastLabel = `${monthFormatter.format(forecastDate)} ${forecastDate
+      .getFullYear()
+      .toString()
+      .slice(-2)}`;
+
+    const fullSeries = [
+      ...history,
+      {
+        value: forecastValue,
+        label: forecastLabel,
+        date: forecastDate,
+        isForecast: true,
+      },
+    ];
 
     const padding = 60;
     const chartWidth = width - 2 * padding;
     const chartHeight = height - 2 * padding;
-    const maxValue = Math.max(
-      ...thisMonthData,
-      ...lastMonthData,
-      ...nextMonthPrediction
-    );
-    const minValue = Math.min(
-      ...thisMonthData,
-      ...lastMonthData,
-      ...nextMonthPrediction
-    );
 
-    // Create a nice range with some padding
-    const valueRange = maxValue - minValue;
-    const paddedMax = maxValue + valueRange * 0.1; // Add 10% padding at top
-    const paddedMin = Math.max(0, minValue - valueRange * 0.1); // Add 10% padding at bottom, but don't go below 0
-    const totalRange = paddedMax - paddedMin;
+    const valuePool = [...actualValues, ...trendValues, forecastValue];
+    const maxValue = Math.max(...valuePool);
+    const minValue = Math.min(...valuePool);
+    const rawRange = maxValue - minValue;
+    const paddingValue =
+      rawRange === 0 ? Math.max(25, maxValue * 0.05 || 10) : rawRange * 0.1;
+    const paddedMax = maxValue + paddingValue;
+    const paddedMin = Math.max(0, minValue - paddingValue);
+    const totalRange = paddedMax - paddedMin || 1;
 
-    // Number of grid lines/labels
+    const xStep = chartWidth / Math.max(fullSeries.length - 1, 1);
+    const getX = (idx) => padding + xStep * idx;
+    const toY = (value) =>
+      height - padding - ((value - paddedMin) / totalRange) * chartHeight;
+
     const gridLines = 5;
-
-    // Draw grid lines
     ctx.strokeStyle = "#e2e8f0";
     ctx.lineWidth = 1;
     for (let i = 0; i <= gridLines; i++) {
@@ -367,28 +405,23 @@ class EcoTrackApp {
       ctx.stroke();
     }
 
-    // Helper function to draw line
-    const drawLine = (data, color, lineWidth = 3, isDotted = false) => {
+    const drawLine = (
+      values,
+      xCoords,
+      color,
+      lineWidth = 3,
+      isDotted = false
+    ) => {
+      if (!values.length) return;
       ctx.strokeStyle = color;
       ctx.lineWidth = lineWidth;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
-
-      // Set line dash for dotted lines
-      if (isDotted) {
-        ctx.setLineDash([8, 5]); // 8px dash, 5px gap
-      } else {
-        ctx.setLineDash([]); // Solid line
-      }
-
+      ctx.setLineDash(isDotted ? [8, 5] : []);
       ctx.beginPath();
-
-      data.forEach((value, index) => {
-        const x = padding + (chartWidth / (data.length - 1)) * index;
-        // Fix: Use the padded range for proper scaling
-        const y =
-          height - padding - ((value - paddedMin) / totalRange) * chartHeight;
-
+      values.forEach((value, index) => {
+        const x = xCoords[index];
+        const y = toY(value);
         if (index === 0) {
           ctx.moveTo(x, y);
         } else {
@@ -396,57 +429,190 @@ class EcoTrackApp {
         }
       });
       ctx.stroke();
-
-      // Reset line dash after drawing
       ctx.setLineDash([]);
     };
 
-    // Draw data points
-    const drawPoints = (data, color) => {
+    const drawPoints = (values, xCoords, color) => {
       ctx.fillStyle = color;
-      data.forEach((value, index) => {
-        const x = padding + (chartWidth / (data.length - 1)) * index;
-        // Fix: Use the padded range for proper scaling
-        const y =
-          height - padding - ((value - paddedMin) / totalRange) * chartHeight;
-
+      values.forEach((value, index) => {
+        const x = xCoords[index];
+        const y = toY(value);
         ctx.beginPath();
         ctx.arc(x, y, 4, 0, 2 * Math.PI);
         ctx.fill();
       });
     };
 
-    // Draw lines
-    drawLine(lastMonthData, "#3b82f6", 2);
-    drawLine(thisMonthData, "#22c55e", 3);
-    drawLine(nextMonthPrediction, "#f59e0b", 2, true); // Orange dotted line for prediction
+    const actualX = history.map((_, idx) => getX(idx));
+    drawLine(actualValues, actualX, "#3b82f6", 3);
+    drawPoints(actualValues, actualX, "#3b82f6");
 
-    // Draw points
-    drawPoints(lastMonthData, "#3b82f6");
-    drawPoints(thisMonthData, "#22c55e");
-    drawPoints(nextMonthPrediction, "#f59e0b");
+    const trendX = history.map((_, idx) => getX(idx));
+    drawLine(trendValues, trendX, "#22c55e", 2);
+    drawPoints(trendValues, trendX, "#22c55e");
 
-    // Draw week labels
+    const forecastLineValues = [
+      actualValues[actualValues.length - 1],
+      forecastValue,
+    ];
+    const forecastX = [getX(history.length - 1), getX(history.length)];
+    drawLine(forecastLineValues, forecastX, "#f59e0b", 2, true);
+    drawPoints([forecastValue], [getX(history.length)], "#f59e0b");
+
     ctx.fillStyle = "#222";
     ctx.font = "12px Outfit";
     ctx.textAlign = "center";
-    weeks.forEach((week, index) => {
-      const x = padding + (chartWidth / (weeks.length - 1)) * index;
-      ctx.fillText(week, x, height - 10);
+    const approximateLabelWidth = 70;
+    const labelStep = Math.max(
+      1,
+      Math.ceil(
+        (fullSeries.length * approximateLabelWidth) /
+          Math.max(chartWidth, approximateLabelWidth)
+      )
+    );
+    fullSeries.forEach((point, index) => {
+      const isLast = index === fullSeries.length - 1;
+      if (!isLast && index % labelStep !== 0) {
+        return;
+      }
+      ctx.fillText(point.label, getX(index), height - 10);
     });
 
-    // Fix: Draw value labels on the left with correct values
     ctx.textAlign = "right";
     ctx.fillStyle = "#666";
     ctx.font = "11px Outfit";
-
     for (let i = 0; i <= gridLines; i++) {
-      // Calculate the actual value for this grid line
       const value = paddedMax - (totalRange / gridLines) * i;
-      const y = padding + (chartHeight / gridLines) * i + 4; // +4 for better vertical alignment
-
+      const y = padding + (chartHeight / gridLines) * i + 4;
       ctx.fillText(`${value.toFixed(1)}kg`, padding - 10, y);
     }
+
+    ctx.restore();
+  }
+
+  drawCarbonGraphMessage(ctx, width, height, message) {
+    if (!ctx) return;
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "16px 'Inter', sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(message, width / 2, height / 2);
+  }
+
+  normalizeFootprintHistory(rawSeries) {
+    if (!Array.isArray(rawSeries) || rawSeries.length === 0) {
+      return [];
+    }
+
+    const trimmed = rawSeries.slice(-8);
+    const today = new Date();
+    today.setDate(1);
+    const startMonth = new Date(
+      today.getFullYear(),
+      today.getMonth() - (trimmed.length - 1),
+      1
+    );
+    const monthFormatter = new Intl.DateTimeFormat("en", { month: "short" });
+
+    return trimmed.map((entry, index) => {
+      let valueCandidate = 0;
+      let recordedDate = null;
+
+      if (typeof entry === "number") {
+        valueCandidate = entry;
+      } else if (entry && typeof entry === "object") {
+        const rawValue =
+          entry.value ?? entry.amount ?? entry.score ?? entry.measurement;
+        valueCandidate = Number(rawValue);
+        if (entry.recorded_at) {
+          const parsedDate = new Date(entry.recorded_at);
+          if (!Number.isNaN(parsedDate.getTime())) {
+            recordedDate = parsedDate;
+          }
+        }
+      }
+
+      let numericValue = Number(valueCandidate);
+      if (!Number.isFinite(numericValue)) {
+        numericValue = 0;
+      }
+      numericValue = Math.round(numericValue * 100) / 100;
+
+      const fallbackDate = new Date(
+        startMonth.getFullYear(),
+        startMonth.getMonth() + index,
+        1
+      );
+      const date = recordedDate || fallbackDate;
+      const label = `${monthFormatter.format(date)} ${date
+        .getFullYear()
+        .toString()
+        .slice(-2)}`;
+
+      return {
+        value: numericValue,
+        label,
+        date,
+      };
+    });
+  }
+
+  computeMovingAverage(values, windowSize = 3) {
+    if (!Array.isArray(values) || values.length === 0) {
+      return [];
+    }
+    const window = Math.max(1, windowSize);
+    return values.map((_, index) => {
+      const start = Math.max(0, index - window + 1);
+      const subset = values.slice(start, index + 1);
+      const avg =
+        subset.reduce((total, value) => total + value, 0) / subset.length;
+      return Math.round(avg * 100) / 100;
+    });
+  }
+
+  computeForecast(values) {
+    if (!Array.isArray(values) || values.length === 0) {
+      return 0;
+    }
+    const lastValue = Number(values[values.length - 1]) || 0;
+    if (values.length === 1) {
+      const clampedSingle = Math.min(2000, Math.max(20, lastValue));
+      return Math.round(clampedSingle * 100) / 100;
+    }
+
+    const n = values.length;
+    const sumX = values.reduce((acc, _, index) => acc + index, 0);
+    const sumY = values.reduce((acc, value) => acc + value, 0);
+    const sumXY = values.reduce((acc, value, index) => acc + index * value, 0);
+    const sumX2 = values.reduce((acc, _, index) => acc + index * index, 0);
+    const denominator = n * sumX2 - sumX * sumX;
+    const regressionSlope =
+      denominator === 0 ? 0 : (n * sumXY - sumX * sumY) / denominator;
+
+    const recentWindow = values.slice(-4);
+    let recentSlope = 0;
+    if (recentWindow.length >= 2) {
+      const recentChanges = recentWindow.slice(1).map((value, idx) => {
+        return value - recentWindow[idx];
+      });
+      const totalRecentChange = recentChanges.reduce(
+        (acc, delta) => acc + delta,
+        0
+      );
+      recentSlope = totalRecentChange / recentChanges.length;
+    }
+
+    const blendedDelta =
+      (regressionSlope + recentSlope) / 2 || regressionSlope || recentSlope;
+    const maxAllowedChange = Math.max(25, Math.abs(lastValue) * 0.15);
+    const constrainedDelta = Math.min(
+      maxAllowedChange,
+      Math.max(-maxAllowedChange, blendedDelta)
+    );
+    const forecast = lastValue + constrainedDelta;
+    const clamped = Math.min(2000, Math.max(20, forecast));
+    return Math.round(clamped * 100) / 100;
   }
 
   question_count;

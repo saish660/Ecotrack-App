@@ -272,15 +272,15 @@
             <div class="graph-legend">
               <div class="legend-item">
                 <span class="legend-color" style="background: #3b82f6"></span>
-                <span>Last Month</span>
+                <span>Actual Footprint</span>
               </div>
               <div class="legend-item">
                 <span class="legend-color" style="background: #22c55e"></span>
-                <span>This Month</span>
+                <span>Rolling Trend</span>
               </div>
               <div class="legend-item">
                 <span class="legend-color" style="background: #f59e0b"></span>
-                <span>Next Month</span>
+                <span>Forecast</span>
               </div>
             </div>
           </div>
@@ -343,17 +343,84 @@
       <!-- Communities Tab -->
       <section id="communities" class="tab-content">
         <div class="card" id="community-actions-card">
-          <div class="community-actions" style="margin-bottom: 1.5rem">
-            <h2 class="card-title">Eco Communities</h2>
-            <button class="btn btn-primary" id="create-community-btn">
-              Create Community
-            </button>
-            <button class="btn btn-secondary" id="join-community-btn">
-              Join Community
-            </button>
-            <button class="btn btn-outline" id="browse-communities-btn">
-              Browse Public Communities
-            </button>
+          <div class="community-actions-shell">
+            <div class="community-actions-header">
+              <div>
+                <h2 class="card-title">Eco Communities</h2>
+                <p class="community-actions-subtitle">
+                  Build or join eco-focused groups, then browse the wider
+                  network.
+                </p>
+              </div>
+            </div>
+            <div class="community-action-grid">
+              <button
+                class="community-icon-btn"
+                id="create-community-btn"
+                aria-label="Create community"
+              >
+                <span class="icon-circle">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M12 4.5v15m7.5-7.5h-15"
+                    />
+                  </svg>
+                </span>
+                <span>Create</span>
+              </button>
+              <button
+                class="community-icon-btn"
+                id="join-community-btn"
+                aria-label="Join community"
+              >
+                <span class="icon-circle">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14.25c-3.038 0-5.5 2.014-5.5 4.5h11c0-2.486-2.462-4.5-5.5-4.5z"
+                    />
+                  </svg>
+                </span>
+                <span>Join</span>
+              </button>
+              <button
+                class="community-icon-btn"
+                id="browse-communities-btn"
+                aria-label="Browse public communities"
+              >
+                <span class="icon-circle">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M12 3c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9zm0 0c2.485 0 4.5 4.03 4.5 9s-2.015 9-4.5 9-4.5-4.03-4.5-9 2.015-9 4.5-9zm-7.794 5.25h15.588m-15.588 9h15.588"
+                    />
+                  </svg>
+                </span>
+                <span>Browse</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -383,40 +450,113 @@
         </div>
 
         <!-- Community Chat (hidden by default) -->
-        <div class="card hidden" id="community-chat-card">
+        <div class="chat-room hidden" id="community-chat-card">
           <div class="chat-header">
-            <button class="btn btn-outline" id="back-to-communities">
-              Back to Communities
-            </button>
-            <h3 class="card-title" id="chat-community-name">Community Name</h3>
             <div class="community-info">
+              <h3 class="chat-title" id="chat-community-name">
+                Community Name
+              </h3>
               <span id="chat-member-count">0 members</span>
-              <button class="btn btn-outline btn-sm" id="leave-community-btn">
-                Leave
-              </button>
             </div>
-          </div>
-
-          <div class="chat-messages" id="chat-messages">
-            <!-- Messages will be loaded here -->
-          </div>
-
-          <div class="chat-input-container">
-            <div class="message-type-selector">
-              <select id="message-type" class="form-select">
-                <option value="text">Message</option>
-                <option value="task">Eco Task</option>
-                <option value="achievement">🏆 Achievement</option>
-                <option value="announcement">📢 Announcement</option>
-              </select>
+            <div class="chat-actions-row">
               <button
-                class="btn btn-outline btn-sm"
-                id="share-join-code-btn"
-                title="Share join code"
+                class="chat-header-icon-btn"
+                id="back-to-communities"
+                title="Back to communities"
+                aria-label="Back to communities"
               >
-                Share Code
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M10.5 6 4.5 12l6 6"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M19.5 12H4.5"
+                  />
+                </svg>
+                <span>Back</span>
               </button>
+              <div class="chat-icon-group">
+                <button
+                  class="chat-header-icon-btn"
+                  id="share-join-code-btn"
+                  title="Share join code"
+                  aria-label="Share join code"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <circle cx="7" cy="12" r="2.25" />
+                    <circle cx="17" cy="5.5" r="2.25" />
+                    <circle cx="17" cy="18.5" r="2.25" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M8.95 11l5.6-3.2"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M8.95 13l5.6 3.2"
+                    />
+                  </svg>
+                  <span>Share</span>
+                </button>
+                <button
+                  class="chat-header-icon-btn danger"
+                  id="leave-community-btn"
+                  title="Leave community"
+                  aria-label="Leave community"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M13.5 3H6.75A2.25 2.25 0 004.5 5.25v13.5A2.25 2.25 0 006.75 21H13.5"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M18 8.25 21.75 12 18 15.75"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M21.75 12H10.5"
+                    />
+                  </svg>
+                  <span>Leave</span>
+                </button>
+              </div>
             </div>
+          </div>
+
+          <div class="chat-body">
+            <div class="chat-messages" id="chat-messages">
+              <!-- Messages will be loaded here -->
+            </div>
+          </div>
+
+          <div class="chat-composer">
             <div class="chat-input">
               <textarea
                 id="message-input"
@@ -424,8 +564,33 @@
                 rows="2"
                 class="form-textarea"
               ></textarea>
+            </div>
+            <div class="chat-controls">
+              <div class="message-type-selector">
+                <select id="message-type" class="form-select">
+                  <option value="text">Message</option>
+                  <option value="task">Eco Task</option>
+                  <option value="achievement">🏆 Achievement</option>
+                  <option value="announcement">📢 Announcement</option>
+                </select>
+              </div>
               <button class="btn btn-primary" id="send-message-btn">
-                Send
+                <span>Send</span>
+                <span class="send-icon" aria-hidden="true">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M4.5 12l15-7-3 7 3 7-15-7z"
+                    />
+                  </svg>
+                </span>
               </button>
             </div>
           </div>
