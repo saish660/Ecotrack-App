@@ -247,21 +247,60 @@
       <!-- Profile Tab -->
       <section id="profile" class="tab-content">
         <div class="card profile-card">
-          <h2 class="card-title">Profile</h2>
-          <div class="profile-avatar">U</div>
+          <div class="profile-avatar">{{ request.user.username.0.upper }}</div>
           <p style="font-size: 1.25rem; font-weight: 600">
             {{ request.user.username }}
           </p>
           <p style="color: var(--text-color-secondary); margin-bottom: 1.5rem">
             Joined: {{ request.user.date_joined.date }}
           </p>
-          <button
-            class="btn"
-            style="background-color: var(--danger-color); color: white"
-            onclick="logout()"
-          >
-            Logout
-          </button>
+          <div class="profile-actions">
+            <button
+              type="button"
+              class="profile-action-icon"
+              aria-label="Logout"
+              onclick="logout()"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M15 3h4v18h-4" />
+                <path d="M10 17l5-5-5-5" />
+                <path d="M15 12H4" />
+              </svg>
+              <span class="profile-action-label">Logout</span>
+            </button>
+            <button
+              type="button"
+              class="profile-action-icon profile-achievements-btn"
+              data-tab="all-achievements"
+              aria-label="View achievements"
+              onclick="activateTab('all-achievements')"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M15.75 3v3.75m-7.5-3.75V6.75" />
+                <path
+                  d="M4.5 3.75h15l-.75 6.75a4.5 4.5 0 01-4.47 4.0l-.03 0h-4.5a4.5 4.5 0 01-4.47-4l-.03-0L4.5 3.75z"
+                />
+                <path d="M9 18l-1.5 3h9L15 18" />
+              </svg>
+              <span class="profile-action-label">Badges</span>
+            </button>
+          </div>
         </div>
 
         <!-- Carbon footprint prediction graph -->
@@ -284,16 +323,6 @@
               </div>
             </div>
           </div>
-        </div>
-        <!-- Show only a few badges here -->
-        <div class="card">
-          <h2 class="card-title">Achievements</h2>
-          <div id="profile-achievements-preview" class="achievements-grid">
-            <!-- Only a few achievements will be shown here by JS -->
-          </div>
-          <button class="btn btn-secondary" data-tab="all-achievements">
-            View All Badges
-          </button>
         </div>
 
         <!-- Android Notification Management -->
@@ -814,33 +843,36 @@
     <script src="{% static 'push_settings.js' %}"></script>
     <script src="{% static 'communities.js' %}"></script>
     <script>
+      function activateTab(tab) {
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((nav) => nav.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((tabC) => tabC.classList.remove("active"));
+
+        document
+          .querySelector(`.nav-item[data-tab='${tab}']`)
+          ?.classList.add("active");
+        document.getElementById(tab)?.classList.add("active");
+
+        if (window.app) {
+          if (tab === "checkin") {
+            window.app.renderDailyQuestionnaire();
+          } else if (tab === "all-achievements") {
+            window.app.loadAchievements();
+          }
+        }
+
+        if (window.communityManager && tab === "communities") {
+          window.communityManager.loadUserCommunities();
+        }
+      }
+
       document.addEventListener("click", function (e) {
         const btn = e.target.closest("button[data-tab]");
         if (btn && !btn.classList.contains("nav-item")) {
-          const tab = btn.getAttribute("data-tab");
-          // Deactivate all nav and tab-content
-          document
-            .querySelectorAll(".nav-item")
-            .forEach((nav) => nav.classList.remove("active"));
-          document
-            .querySelectorAll(".tab-content")
-            .forEach((tabC) => tabC.classList.remove("active"));
-          // Activate the correct nav and tab-content
-          document
-            .querySelector(`.nav-item[data-tab='${tab}']`)
-            ?.classList.add("active");
-          document.getElementById(tab)?.classList.add("active");
-          // Special logic for checkin and all-achievements
-          if (window.app && tab === "checkin") {
-            window.app.renderDailyQuestionnaire();
-          }
-          if (window.app && tab === "all-achievements") {
-            window.app.loadAchievements();
-          }
-          // Special logic for communities
-          if (window.communityManager && tab === "communities") {
-            window.communityManager.loadUserCommunities();
-          }
+          activateTab(btn.getAttribute("data-tab"));
         }
       });
     </script>

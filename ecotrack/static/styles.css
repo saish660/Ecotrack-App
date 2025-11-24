@@ -76,6 +76,17 @@ body {
   scrollbar-width: none;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
 /* Main App Layout */
 .app-header {
   background: var(--surface-color);
@@ -936,37 +947,16 @@ main {
   position: relative;
   overflow: hidden;
 }
-.profile-card::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle,
-    rgba(34, 197, 94, 0.05) 0%,
-    transparent 70%
-  );
-  animation: rotate 20s linear infinite;
-}
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
+
 .profile-avatar {
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   background: var(--gradient-primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-size: 3.5rem;
   font-weight: 700;
   color: white;
   margin: 0 auto 1rem;
@@ -979,6 +969,54 @@ main {
   50% {
     transform: translateY(-5px);
   }
+}
+.profile-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+.profile-actions .btn {
+  width: auto;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.profile-action-icon {
+  width: 82px;
+  min-height: 82px;
+  border-radius: 20px;
+  border: none;
+  background-color: #ffe2e2;
+  color: var(--danger-color);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.65rem 0.4rem 0.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.profile-action-icon:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+.profile-action-icon:active {
+  transform: scale(0.95);
+}
+.profile-action-icon svg {
+  width: 22px;
+  height: 22px;
+}
+.profile-action-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.profile-action-icon.profile-achievements-btn {
+  background: #decfff;
+  color: rgb(94, 91, 255);
 }
 
 /* Carbon Graph Styles */
