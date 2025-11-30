@@ -65,6 +65,60 @@ class EcoTrackApp {
     },
   ];
 
+  isLowEndDevice() {
+    if (typeof this._isLowEndDevice === "boolean") {
+      return this._isLowEndDevice;
+    }
+
+    const nav = typeof navigator !== "undefined" ? navigator : {};
+    const ua = (nav.userAgent || "").toLowerCase();
+    const isMobileUA = /android|iphone|ipad|ipod|mobile/.test(ua);
+    const supportsMatchMedia =
+      typeof window !== "undefined" && typeof window.matchMedia === "function";
+    const coarsePointer = supportsMatchMedia
+      ? window.matchMedia("(pointer:coarse)").matches
+      : false;
+    const prefersReducedMotion = supportsMatchMedia
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false;
+    const smallViewport =
+      typeof window !== "undefined" ? window.innerWidth < 768 : false;
+    const touchOnly = (nav.maxTouchPoints || 0) > 1;
+
+    const memoryValue =
+      typeof nav.deviceMemory === "number" && nav.deviceMemory > 0
+        ? nav.deviceMemory
+        : null;
+    const coresValue =
+      typeof nav.hardwareConcurrency === "number" && nav.hardwareConcurrency > 0
+        ? nav.hardwareConcurrency
+        : null;
+
+    const connection =
+      nav.connection || nav.mozConnection || nav.webkitConnection;
+    const saveData = !!connection?.saveData;
+    const effectiveType = connection?.effectiveType || "";
+    const slowConnection = /(^|\b)(slow-2g|2g|3g)\b/.test(effectiveType);
+
+    const lowResources =
+      (memoryValue !== null && memoryValue < 6) ||
+      (coresValue !== null && coresValue <= 4);
+    const unknownResources = memoryValue === null && coresValue === null;
+
+    const isLikelyMobile =
+      isMobileUA || coarsePointer || touchOnly || smallViewport;
+
+    const needsThrottle =
+      lowResources ||
+      saveData ||
+      slowConnection ||
+      prefersReducedMotion ||
+      (unknownResources && isLikelyMobile);
+
+    this._isLowEndDevice = isLikelyMobile && needsThrottle;
+    return this._isLowEndDevice;
+  }
+
   getAchievementById(id) {
     const foundAchievement = this.userAchievements.find(
       (achievement) => achievement.id === id
@@ -913,6 +967,8 @@ class EcoTrackApp {
     container.innerHTML = "";
     const width = container.offsetWidth || 400;
     const height = container.offsetHeight || 300;
+    const lowEndDevice = this.isLowEndDevice();
+    const shadowsEnabled = !lowEndDevice;
     const scene = new THREE.Scene();
     const dynamicActors = {
       animals: [],
@@ -1063,12 +1119,22 @@ class EcoTrackApp {
     scene.add(skyBackdrop);
 
     // Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({
+      antialias: !lowEndDevice,
+      alpha: true,
+      powerPreference: lowEndDevice ? "low-power" : "high-performance",
+    });
     renderer.setClearColor(skyColorObj, 1);
     renderer.setSize(width, height);
-    renderer.setPixelRatio(window.devicePixelRatio || 1);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    const pixelRatio = window.devicePixelRatio || 1;
+    const cappedPixelRatio = lowEndDevice
+      ? Math.min(pixelRatio, 1.25)
+      : pixelRatio;
+    renderer.setPixelRatio(cappedPixelRatio);
+    renderer.shadowMap.enabled = shadowsEnabled;
+    if (shadowsEnabled && THREE.PCFSoftShadowMap) {
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    }
     if (renderer.outputEncoding !== undefined && THREE.sRGBEncoding) {
       renderer.outputEncoding = THREE.sRGBEncoding;
     } else if (
@@ -1096,14 +1162,16 @@ class EcoTrackApp {
     dirLight.position.copy(sunPosition.clone().add(new THREE.Vector3(0, 0, 8)));
     dirLight.target.position.set(0, 0, 0);
     scene.add(dirLight.target);
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.set(1024, 1024);
-    dirLight.shadow.camera.near = 5;
-    dirLight.shadow.camera.far = 80;
-    dirLight.shadow.camera.left = -40;
-    dirLight.shadow.camera.right = 40;
-    dirLight.shadow.camera.top = 40;
-    dirLight.shadow.camera.bottom = -40;
+    dirLight.castShadow = shadowsEnabled;
+    if (shadowsEnabled) {
+      dirLight.shadow.mapSize.set(1024, 1024);
+      dirLight.shadow.camera.near = 5;
+      dirLight.shadow.camera.far = 80;
+      dirLight.shadow.camera.left = -40;
+      dirLight.shadow.camera.right = 40;
+      dirLight.shadow.camera.top = 40;
+      dirLight.shadow.camera.bottom = -40;
+    }
     scene.add(dirLight);
     const fillLight = new THREE.DirectionalLight(0xfff0c2, 0.35);
     fillLight.position.set(-18, 9, -14);
