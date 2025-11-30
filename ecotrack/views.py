@@ -474,6 +474,9 @@ def submit_questionnaire(request):
     else:
         request.user.sustainability_score += 1
 
+    # Clamp the cumulative score to the supported 0-100 range
+    request.user.sustainability_score = max(0, min(100, request.user.sustainability_score))
+
     today = timezone.localdate()
     last_checkin_date = _coerce_to_date(request.user.last_checkin)
 

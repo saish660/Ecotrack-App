@@ -71,19 +71,6 @@ class EcoTrackApp {
     }
 
     const nav = typeof navigator !== "undefined" ? navigator : {};
-    const ua = (nav.userAgent || "").toLowerCase();
-    const isMobileUA = /android|iphone|ipad|ipod|mobile/.test(ua);
-    const supportsMatchMedia =
-      typeof window !== "undefined" && typeof window.matchMedia === "function";
-    const coarsePointer = supportsMatchMedia
-      ? window.matchMedia("(pointer:coarse)").matches
-      : false;
-    const prefersReducedMotion = supportsMatchMedia
-      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      : false;
-    const smallViewport =
-      typeof window !== "undefined" ? window.innerWidth < 768 : false;
-    const touchOnly = (nav.maxTouchPoints || 0) > 1;
 
     const memoryValue =
       typeof nav.deviceMemory === "number" && nav.deviceMemory > 0
@@ -94,28 +81,12 @@ class EcoTrackApp {
         ? nav.hardwareConcurrency
         : null;
 
-    const connection =
-      nav.connection || nav.mozConnection || nav.webkitConnection;
-    const saveData = !!connection?.saveData;
-    const effectiveType = connection?.effectiveType || "";
-    const slowConnection = /(^|\b)(slow-2g|2g|3g)\b/.test(effectiveType);
-
+    // Determine low-end devices strictly via CPU cores and RAM
     const lowResources =
       (memoryValue !== null && memoryValue < 6) ||
       (coresValue !== null && coresValue <= 4);
-    const unknownResources = memoryValue === null && coresValue === null;
 
-    const isLikelyMobile =
-      isMobileUA || coarsePointer || touchOnly || smallViewport;
-
-    const needsThrottle =
-      lowResources ||
-      saveData ||
-      slowConnection ||
-      prefersReducedMotion ||
-      (unknownResources && isLikelyMobile);
-
-    this._isLowEndDevice = isLikelyMobile && needsThrottle;
+    this._isLowEndDevice = lowResources;
     return this._isLowEndDevice;
   }
 
