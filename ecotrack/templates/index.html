@@ -214,6 +214,81 @@
             </button>
           </div>
           <ul id="habit-items-list" class="habit-list"></ul>
+          <div class="habit-category-panel">
+            <div class="habit-category-panel-head">
+              <div>
+                <p class="habit-category-label">Need inspiration?</p>
+                <p class="habit-category-subtext">
+                  Tap a themed card to get ready-made eco habits you can add in one click.
+                </p>
+              </div>
+            </div>
+            <div
+              id="habit-category-grid"
+              class="habit-category-grid"
+              aria-live="polite"
+            >
+              <button
+                type="button"
+                class="habit-category-card"
+                data-category="food"
+                style="--habit-card-accent: #16a34a; --habit-card-gradient: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)"
+              >
+                <span class="habit-category-icon">🥗</span>
+                <div class="habit-category-copy">
+                  <p>Food &amp; Kitchen</p>
+                  <small>Cook greener &amp; cut waste</small>
+                </div>
+              </button>
+              <button
+                type="button"
+                class="habit-category-card"
+                data-category="travel"
+                style="--habit-card-accent: #0ea5e9; --habit-card-gradient: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)"
+              >
+                <span class="habit-category-icon">🚲</span>
+                <div class="habit-category-copy">
+                  <p>Travel &amp; Commute</p>
+                  <small>Lower-impact trips &amp; errands</small>
+                </div>
+              </button>
+              <button
+                type="button"
+                class="habit-category-card"
+                data-category="home"
+                style="--habit-card-accent: #facc15; --habit-card-gradient: linear-gradient(135deg, #fef9c3 0%, #fde68a 100%)"
+              >
+                <span class="habit-category-icon">🏡</span>
+                <div class="habit-category-copy">
+                  <p>Home &amp; Energy</p>
+                  <small>Efficient routines indoors</small>
+                </div>
+              </button>
+              <button
+                type="button"
+                class="habit-category-card"
+                data-category="community"
+                style="--habit-card-accent: #ec4899; --habit-card-gradient: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)"
+              >
+                <span class="habit-category-icon">🤝</span>
+                <div class="habit-category-copy">
+                  <p>Lifestyle &amp; Community</p>
+                  <small>Share and motivate others</small>
+                </div>
+              </button>
+            </div>
+            <div
+              id="habit-category-status"
+              class="habit-category-status"
+              aria-live="polite"
+            >
+              Choose a category card to see matching habit ideas.
+            </div>
+            <div
+              id="habit-category-suggestions"
+              class="habit-category-suggestions"
+            ></div>
+          </div>
         </div>
       </section>
 
@@ -228,10 +303,33 @@
         <div
           style="
             display: flex;
-            justify-content: flex-end;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
             margin: -0.5rem 0 0.75rem 0;
           "
         >
+          <select
+            id="suggestions-category"
+            class="suggestions-category"
+            aria-label="Suggestion category"
+            style="
+              flex: 1;
+              min-width: 200px;
+              max-width: 320px;
+              padding: 0.65rem 0.75rem;
+              border-radius: 0.75rem;
+              border: 1px solid var(--border-color, #d4d4d8);
+              background: var(--card-bg, #fff);
+              color: var(--text-color, #0f172a);
+              font-size: 0.95rem;
+            "
+          >
+            <option value="general">All categories</option>
+            <option value="food">Food</option>
+            <option value="travel">Travel</option>
+          </select>
           <button id="reload-suggestions-btn" class="btn btn-outline">
             Reload Suggestions
           </button>

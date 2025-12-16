@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta, time, date
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
@@ -22,6 +23,78 @@ import logging
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
+
+
+HABIT_CATEGORY_LIBRARY = {
+    "food": {
+        "title": "Food & Kitchen",
+        "habits": [
+            {
+                "title": "Plan two plant-rich dinners",
+                "description": "Pick two nights for vegetarian recipes to shrink weekly food emissions.",
+            },
+            {
+                "title": "Freeze leftovers before they spoil",
+                "description": "Label and freeze single servings so surprise meals never head to the trash.",
+            },
+            {
+                "title": "Pack a zero-waste snack kit",
+                "description": "Keep a reusable container, utensil, and napkin ready to skip disposables on the go.",
+            },
+        ],
+    },
+    "travel": {
+        "title": "Travel & Commute",
+        "habits": [
+            {
+                "title": "Swap one solo drive for transit",
+                "description": "Choose a recurring errand to do by bus or train once per week to cut fuel use.",
+            },
+            {
+                "title": "Keep a bike errand kit ready",
+                "description": "Prep lights, lock, and tote bag so hopping on the bike becomes the default option.",
+            },
+            {
+                "title": "Batch errands into one loop",
+                "description": "Plan errands along a single route to reduce mileage and idling time.",
+            },
+        ],
+    },
+    "home": {
+        "title": "Home & Energy",
+        "habits": [
+            {
+                "title": "Run laundry on cold",
+                "description": "Set the washer to cold-only cycles—most detergents work great without heat.",
+            },
+            {
+                "title": "Nightly power-down sweep",
+                "description": "Unplug chargers and flip power strips before bed to avoid phantom loads.",
+            },
+            {
+                "title": "Collect warm-up water",
+                "description": "Catch shower warm-up water in a bucket for plants or floor cleaning.",
+            },
+        ],
+    },
+    "community": {
+        "title": "Lifestyle & Community",
+        "habits": [
+            {
+                "title": "Host a mini clothing swap",
+                "description": "Trade rarely worn pieces with friends instead of buying something new.",
+            },
+            {
+                "title": "Share one green tip weekly",
+                "description": "Post or text your favorite eco habit each week to keep momentum high.",
+            },
+            {
+                "title": "Track a low-trash day",
+                "description": "Pick one day to fit landfill waste into a jar and note what helped.",
+            },
+        ],
+    },
+}
 
 
 def _safe_float(value, default=None):
@@ -389,6 +462,30 @@ def delete_habit(request):
 
 
 @login_required
+@require_http_methods(["POST"])
+def get_habit_category_suggestions(request):
+    try:
+        payload = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid JSON payload',
+        }, status=400)
+
+    category = (payload.get('category') or 'food').lower()
+    if category not in HABIT_CATEGORY_LIBRARY:
+        category = 'food'
+
+    entry = HABIT_CATEGORY_LIBRARY[category]
+    return JsonResponse({
+        'status': 'success',
+        'category': category,
+        'title': entry['title'],
+        'suggestions': entry['habits'],
+    })
+
+
+@login_required
 def get_questions(request):
     if request.method != "POST":
         return HttpResponseRedirect(reverse('index'))
@@ -438,7 +535,30 @@ def get_questions(request):
         contents=prompt,
     )
 
-    return JsonResponse({'status': 'success', 'data': json.loads(response.text)})
+    raw_text = response.text.strip()
+    suggestions = None
+    if raw_text:
+        try:
+            suggestions = json.loads(raw_text)
+        except json.JSONDecodeError:
+            start = raw_text.find("[")
+            end = raw_text.rfind("]")
+            if start != -1 and end != -1 and end > start:
+                try:
+                    suggestions = json.loads(raw_text[start : end + 1])
+                except json.JSONDecodeError:
+                    suggestions = None
+
+    if suggestions is None:
+        return JsonResponse(
+            {
+                'status': 'error',
+                'message': 'Gemini returned malformed data. Please try again.',
+            },
+            status=502,
+        )
+
+    return JsonResponse({'status': 'success', 'data': suggestions})
 
 @login_required
 def submit_questionnaire(request):
@@ -517,13 +637,39 @@ def get_suggestions(request):
         },
     ]
 
-    # return JsonResponse({'status': 'success', 'data': "Hello, world"})
-    client = genai.Client()
+    try:
+        payload = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        payload = {}
+
+    category_descriptions = {
+        "general": "a balanced mix of daily sustainability habits",
+        "food": "food, diet, cooking, and grocery-related actions",
+        "travel": "travel, commuting, and transportation choices",
+    }
+    requested_category = (payload.get("category") or "general").lower()
+    category = (
+        requested_category if requested_category in category_descriptions else "general"
+    )
+    category_focus = category_descriptions[category]
+
+    api_key = getattr(settings, "GEMINI_API_KEY", None) or os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        return JsonResponse(
+            {
+                'status': 'error',
+                'message': 'Gemini API key not configured on the server.',
+            },
+            status=500,
+        )
+
+    client = genai.Client(api_key=api_key)
 
     prompt = f"""
     Give me a few suggestions of habits to perform to reduce carbon footprint.
      **Do not include any explanations, formatting, or backticks. Only provide a raw RFC8259 compliant JSON array.
      ** Here is an output example: {sample_suggestions}
+     ** The suggestions must focus on {category_focus}.
 ** Here are the user's existing habits: {request.user.habits}
     """
 

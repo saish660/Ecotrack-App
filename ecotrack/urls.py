@@ -12,6 +12,7 @@ urlpatterns = [
     path("save_habit", views.save_habit, name="save_habit"),
     path("update_habit", views.update_habit, name="update_habit"),
     path("delete_habit", views.delete_habit, name="delete_habit"),
+    path("get_habit_category_suggestions", views.get_habit_category_suggestions, name="get_habit_category_suggestions"),
     path("submit_questionnaire", views.submit_questionnaire, name="submit_questionnaire"),
     path("get_suggestions", views.get_suggestions, name="get_suggestions"),
     path("get_questions", views.get_questions, name="get_questions"),

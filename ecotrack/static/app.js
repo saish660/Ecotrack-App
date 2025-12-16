@@ -244,6 +244,10 @@ class EcoTrackApp {
     if (reloadBtn) {
       reloadBtn.addEventListener("click", () => this.renderSuggestions());
     }
+    const categorySelect = document.getElementById("suggestions-category");
+    if (categorySelect) {
+      categorySelect.addEventListener("change", () => this.renderSuggestions());
+    }
     // Initialize go-back buttons
     this.initializeGoBackButtons();
     // Initialize 3D ecosystem visualization
@@ -700,6 +704,12 @@ class EcoTrackApp {
     const container = document.getElementById("suggestion-cards-container");
     if (!container) return;
 
+    const categorySelect = document.getElementById("suggestions-category");
+    const category = categorySelect?.value || "general";
+    const categoryLabel =
+      categorySelect?.selectedOptions?.[0]?.textContent?.trim() ||
+      "All categories";
+
     // Ensure a status element exists for user-facing messages
     let statusEl = document.getElementById("suggestions-status");
     if (!statusEl) {
@@ -715,7 +725,7 @@ class EcoTrackApp {
         container.prepend(statusEl);
       }
     }
-    statusEl.textContent = "";
+    statusEl.textContent = `Generating ${categoryLabel.toLowerCase()} ideas…`;
 
     // Show loading animation while waiting for AI (Gemini) suggestions
     container.innerHTML = "";
@@ -736,7 +746,7 @@ class EcoTrackApp {
           "Content-Type": "application/json",
           "X-CSRFToken": getCsrfToken(),
         },
-        body: {},
+        body: JSON.stringify({ category }),
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
@@ -752,7 +762,7 @@ class EcoTrackApp {
 
       if (!Array.isArray(suggestions) || suggestions.length === 0) {
         statusEl.textContent =
-          "No AI suggestions available right now. Please try again later.";
+          `No AI suggestions available for ${categoryLabel.toLowerCase()} right now. Please try again later.`;
         // Provide a subtle retry button
         const retryBtn = document.createElement("button");
         retryBtn.className = "btn btn-outline";
@@ -775,15 +785,19 @@ class EcoTrackApp {
                 `;
         container.appendChild(card);
       });
-      statusEl.textContent = ""; // clear any previous status on success
+      statusEl.textContent = `Showing ${categoryLabel.toLowerCase()} suggestions`;
     } catch (err) {
       clearTimeout(timeoutId);
       container.innerHTML = ""; // remove loading
       let msg = "";
       if (err?.name === "AbortError") {
-        msg = "AI took too long to respond (20s). Please try again.";
+        msg =
+          `AI took too long to respond while loading ${categoryLabel.toLowerCase()} tips. Please try again.`;
       } else {
-        msg = `Couldn't load suggestions: ${err?.message || "Unknown error"}`;
+        msg =
+          `Couldn't load ${categoryLabel.toLowerCase()} suggestions: ${
+            err?.message || "Unknown error"
+          }`;
       }
       statusEl.textContent = msg;
 

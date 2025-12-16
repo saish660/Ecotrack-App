@@ -15,6 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
     "daily-questionnaire-form"
   );
   const formStatusMessage = document.getElementById("form-status-message");
+  const habitCategoryGrid = document.getElementById("habit-category-grid");
+  const habitCategoryStatus = document.getElementById("habit-category-status");
+  const habitCategorySuggestions = document.getElementById(
+    "habit-category-suggestions"
+  );
 
   const customMessageBox = document.getElementById("custom-message-box");
   const messageBoxText = document.getElementById("message-box-text");
@@ -34,6 +39,39 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   let achievements = [];
   let lastQuestionnaireSubmissionDate = null;
+  const HABIT_CATEGORY_LIBRARY = {
+    food: {
+      title: "Food & Kitchen",
+      icon: "🥗",
+      summary: "Cook greener & cut waste",
+      accent: "#16a34a",
+      gradient: "linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)",
+    },
+    travel: {
+      title: "Travel & Commute",
+      icon: "🚲",
+      summary: "Lower-impact trips & errands",
+      accent: "#0ea5e9",
+      gradient: "linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)",
+    },
+    home: {
+      title: "Home & Energy",
+      icon: "🏡",
+      summary: "Efficient routines indoors",
+      accent: "#facc15",
+      gradient: "linear-gradient(135deg, #fef9c3 0%, #fde68a 100%)",
+    },
+    community: {
+      title: "Lifestyle & Community",
+      icon: "🤝",
+      summary: "Share and motivate others",
+      accent: "#ec4899",
+      gradient: "linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)",
+    },
+  };
+  let activeHabitCategory = null;
+  let habitCategoriesInitialized = false;
+  let habitCategoryFetchController = null;
 
   // --- CSRF Token Function ---
   function getCsrfToken() {
@@ -166,6 +204,210 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function renderHabitCategoryCards() {
+    if (!habitCategoryGrid) return;
+    habitCategoryGrid.innerHTML = "";
+
+    const entries = Object.entries(HABIT_CATEGORY_LIBRARY);
+    if (!entries.length) {
+      const placeholder = document.createElement("div");
+      placeholder.className = "habit-category-placeholder";
+      placeholder.textContent = "No curated categories available right now.";
+      habitCategoryGrid.appendChild(placeholder);
+      return;
+    }
+
+    entries.forEach(([key, meta]) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "habit-category-card";
+      if (activeHabitCategory === key) {
+        card.classList.add("active");
+      }
+      card.dataset.category = key;
+      if (meta.accent) {
+        card.style.setProperty("--habit-card-accent", meta.accent);
+      }
+      if (meta.gradient) {
+        card.style.setProperty("--habit-card-gradient", meta.gradient);
+      }
+
+      const icon = document.createElement("span");
+      icon.className = "habit-category-icon";
+      icon.textContent = meta.icon;
+
+      const copy = document.createElement("div");
+      copy.className = "habit-category-copy";
+      const titleEl = document.createElement("p");
+      titleEl.textContent = meta.title;
+      const subEl = document.createElement("small");
+      subEl.textContent = meta.summary;
+      copy.appendChild(titleEl);
+      copy.appendChild(subEl);
+
+      card.appendChild(icon);
+      card.appendChild(copy);
+      habitCategoryGrid.appendChild(card);
+    });
+  }
+
+  function renderHabitSuggestionsList(suggestions) {
+    if (!habitCategorySuggestions) return;
+    habitCategorySuggestions.innerHTML = "";
+
+    if (!Array.isArray(suggestions) || !suggestions.length) {
+      const empty = document.createElement("p");
+      empty.className = "habit-category-status";
+      empty.textContent = "No ready habits in this collection yet.";
+      habitCategorySuggestions.appendChild(empty);
+      return;
+    }
+
+    suggestions.forEach((habit) => {
+      const card = document.createElement("div");
+      card.className = "habit-suggestion-card";
+
+      const info = document.createElement("div");
+      info.className = "habit-suggestion-info";
+
+      const titleEl = document.createElement("p");
+      titleEl.className = "habit-suggestion-title";
+      titleEl.textContent = habit.title;
+
+      const descEl = document.createElement("p");
+      descEl.className = "habit-suggestion-desc";
+      descEl.textContent = habit.description;
+
+      info.appendChild(titleEl);
+      info.appendChild(descEl);
+
+      const addBtn = document.createElement("button");
+      addBtn.type = "button";
+      addBtn.className = "btn btn-secondary habit-suggestion-add-btn";
+      addBtn.dataset.habit = habit.title;
+      addBtn.textContent = "Add to my habits";
+
+      card.appendChild(info);
+      card.appendChild(addBtn);
+      habitCategorySuggestions.appendChild(card);
+    });
+  }
+
+  async function fetchHabitCategorySuggestions(categoryKey) {
+    if (!habitCategorySuggestions) return;
+    const entry = HABIT_CATEGORY_LIBRARY[categoryKey];
+    if (!entry) return;
+
+    if (habitCategoryFetchController) {
+      habitCategoryFetchController.abort();
+    }
+    habitCategoryFetchController = new AbortController();
+    const controller = habitCategoryFetchController;
+
+    habitCategorySuggestions.innerHTML = "";
+    const loading = document.createElement("div");
+    loading.className = "habit-category-placeholder";
+    loading.textContent = `Gathering ${entry.title.toLowerCase()} ideas…`;
+    habitCategorySuggestions.appendChild(loading);
+
+    try {
+      const response = await fetch("get_habit_category_suggestions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
+        },
+        body: JSON.stringify({ category: categoryKey }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Network response was not ok (${response.status})`);
+      }
+
+      const data = await response.json();
+      if (controller !== habitCategoryFetchController) return;
+      if (data.status !== "success") {
+        throw new Error(data.message || "Unable to load habits");
+      }
+
+      renderHabitSuggestionsList(data.suggestions);
+      if (habitCategoryStatus) {
+        const label = data.title || entry.title;
+        habitCategoryStatus.textContent = `Showing ${label} ideas`;
+      }
+    } catch (error) {
+      if (error.name === "AbortError") return;
+      console.error("[Habits] Failed to load category suggestions", error);
+      habitCategorySuggestions.innerHTML = "";
+      const errorEl = document.createElement("p");
+      errorEl.className = "habit-category-status";
+      errorEl.textContent =
+        "Couldn't load curated habits right now. Please try again.";
+      habitCategorySuggestions.appendChild(errorEl);
+      if (habitCategoryStatus) {
+        habitCategoryStatus.textContent = "Tap a card to retry.";
+      }
+    }
+  }
+
+  function handleHabitCategorySelection(categoryKey) {
+    const entry = HABIT_CATEGORY_LIBRARY[categoryKey];
+    if (!entry) return;
+    activeHabitCategory = categoryKey;
+    renderHabitCategoryCards();
+    if (habitCategoryStatus) {
+      habitCategoryStatus.textContent = `Loading ${entry.title} ideas…`;
+    }
+    fetchHabitCategorySuggestions(categoryKey);
+    if (habitCategorySuggestions) {
+      habitCategorySuggestions.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }
+
+  function initializeHabitCategoryPanel() {
+    if (habitCategoriesInitialized) return;
+    if (!habitCategoryGrid) return;
+
+    habitCategoriesInitialized = true;
+    renderHabitCategoryCards();
+
+    habitCategoryGrid.addEventListener("click", (event) => {
+      const card = event.target.closest(".habit-category-card");
+      if (!card) return;
+      const categoryKey = card.dataset.category;
+      handleHabitCategorySelection(categoryKey);
+    });
+
+    if (habitCategorySuggestions) {
+      habitCategorySuggestions.addEventListener("click", async (event) => {
+        const addBtn = event.target.closest(".habit-suggestion-add-btn");
+        if (!addBtn) return;
+        const habitTitle = addBtn.dataset.habit;
+        if (!habitTitle) return;
+
+        const originalText = addBtn.textContent;
+        addBtn.disabled = true;
+        addBtn.textContent = "Adding...";
+
+        try {
+          const result = await saveHabit(habitTitle);
+          if (result) {
+            await refreshUserData();
+            renderHabits();
+            showAlert(`"${habitTitle}" added to your habits!`);
+          }
+        } finally {
+          addBtn.disabled = false;
+          addBtn.textContent = originalText;
+        }
+      });
+    }
+  }
+
   // --- Habits Section Logic ---
   function renderHabits() {
     const habitList = document.getElementById("habit-items-list");
@@ -224,6 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initial render
     renderHabits();
+    initializeHabitCategoryPanel();
 
     // Add habit functionality
     addHabitBtn.onclick = async () => {
