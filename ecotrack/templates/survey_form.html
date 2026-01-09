@@ -1208,13 +1208,7 @@
         const skipBtn = document.getElementById("skip-survey-btn");
         if (skipBtn) {
           skipBtn.addEventListener("click", () => {
-            if (
-              !confirm(
-                "Skip the survey? You can return anytime from the dashboard."
-              )
-            ) {
-              return;
-            }
+           
             fetch("survey", {
               method: "POST",
               headers: {
