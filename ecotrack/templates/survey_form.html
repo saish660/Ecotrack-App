@@ -825,14 +825,6 @@
               >
                 Submit Survey
               </button>
-              <button
-                type="button"
-                id="skip-survey-btn"
-                class="btn btn-outline"
-                style="margin-top: 1rem"
-              >
-                Skip for now
-              </button>
             </div>
           </form>
 
@@ -845,6 +837,14 @@
         </div>
       </section>
     </main>
+    <button
+      type="button"
+      id="skip-survey-btn"
+      class="btn btn-outline floating-skip-btn"
+      aria-label="Skip survey"
+    >
+      Skip
+    </button>
     <script>
       // Survey progress bar and selection logic
       const form = document.getElementById("survey-form");
